@@ -1,0 +1,702 @@
+// ============================================================
+// MyChurch - Prisma Schema
+// Convenção: tabelas/colunas em inglês, labels no app em pt-BR
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum BranchType {
+  HEADQUARTERS  // Matriz
+  BRANCH        // Filial
+  CONGREGATION  // Congregação (dependente financeiramente)
+}
+
+enum PersonCategory {
+  MEMBER               // Membro
+  VISITOR_OCCASIONAL   // Visitante eventual
+  VISITOR_FREQUENT     // Visitante assíduo
+  PROSPECTIVE_MEMBER   // Em preparação para se tornar membro
+  KIDS_MEMBER          // Membro kids
+}
+
+enum KidsAgeGroup {
+  NURSERY      // Berçário (0-2)
+  TODDLER      // Maternal (3-4)
+  JUNIOR       // Juniores (5-7)
+  CHILDREN     // Crianças (8-10)
+  PRE_TEEN     // Pré-adolescente (11-12)
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  TRANSFERRED
+  DECEASED
+}
+
+enum FamilyRelationship {
+  FATHER
+  MOTHER
+  SON
+  DAUGHTER
+  SPOUSE
+  SIBLING
+  GRANDPARENT
+  GRANDCHILD
+  OTHER
+}
+
+enum UserRole {
+  SUPER_ADMIN      // Super administrador (Matriz)
+  BOARD_MEMBER     // Diretoria
+  BRANCH_ADMIN     // Administrador da filial
+  SECRETARY        // Secretaria
+  TREASURER        // Tesoureiro
+  MINISTRY_LEADER  // Líder de ministério
+  MEMBER           // Membro comum
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  COMMON_LAW
+}
+
+enum BoardRole {
+  PRESIDENT
+  VICE_PRESIDENT
+  TREASURER
+  SECRETARY
+  FINANCIAL_SECRETARY
+  BOARD_MEMBER
+  FISCAL_COUNCIL
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  FINISHED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  WAITLISTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+  EXEMPT
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  BANK_TRANSFER
+  EXEMPT
+}
+
+enum ScheduleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TransactionType {
+  INCOME   // Entrada
+  EXPENSE  // Saída
+}
+
+enum RecurrencePeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum ReconciliationStatus {
+  OPEN
+  CLOSED
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+  SYSTEM
+}
+
+// ─────────────────────────────────────────────
+// BRANCH (Filiais)
+// ─────────────────────────────────────────────
+
+model Branch {
+  id              String     @id @default(cuid())
+  name            String
+  type            BranchType @default(BRANCH)
+  parentId        String?
+  parent          Branch?    @relation("BranchHierarchy", fields: [parentId], references: [id])
+  children        Branch[]   @relation("BranchHierarchy")
+
+  cnpj            String?    @unique
+  phone           String?
+  email           String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  logoUrl         String?
+
+  // PIX / pagamentos
+  pixKey          String?
+  pixKeyType      String?    // CPF, CNPJ, EMAIL, PHONE, RANDOM
+
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relações
+  persons         Person[]
+  users           User[]
+  events          Event[]
+  ministries      Ministry[]
+  schedules       Schedule[]
+  serviceTypes    ServiceType[]
+  accounts        FinancialAccount[]
+  categories      TransactionCategory[]
+  transactions    Transaction[]
+  contracts       RecurringContract[]
+  boardMembers    BoardMember[]
+
+  @@map("branches")
+}
+
+// ─────────────────────────────────────────────
+// PERSON (Pessoas — membros, visitantes, kids)
+// ─────────────────────────────────────────────
+
+model Person {
+  id              String         @id @default(cuid())
+  branchId        String
+  branch          Branch         @relation(fields: [branchId], references: [id])
+
+  // Dados pessoais
+  fullName        String
+  preferredName   String?
+  cpf             String?        @unique
+  rg              String?
+  birthDate       DateTime?
+  gender          String?        // M / F
+  maritalStatus   MaritalStatus?
+  nationality     String?        @default("Brasileiro")
+
+  // Contato
+  email           String?
+  phone           String?
+  whatsapp        String?
+
+  // Endereço
+  address         String?
+  addressNumber   String?
+  addressComplement String?
+  neighborhood    String?
+  city            String?
+  state           String?
+  zipCode         String?
+
+  // Classificação
+  category        PersonCategory @default(VISITOR_OCCASIONAL)
+  photoUrl        String?
+
+  // Kids
+  kidsAgeGroup    KidsAgeGroup?
+  parentId        String?        // responsável (outro Person)
+  parent          Person?        @relation("KidsResponsible", fields: [parentId], references: [id])
+  kids            Person[]       @relation("KidsResponsible")
+
+  isActive        Boolean        @default(true)
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relações
+  member          Member?
+  user            User?
+  familyLinks     FamilyMember[]
+  boardRoles      BoardMember[]
+  ministryLinks   MinistryMember[]
+  scheduleSlots   ScheduleSlot[]
+  eventRegistrations EventRegistration[]
+  tithes          Tithe[]
+  namedOfferings  NamedOffering[]
+  availability    MemberAvailability[]
+
+  @@map("persons")
+}
+
+model Member {
+  id               String       @id @default(cuid())
+  personId         String       @unique
+  person           Person       @relation(fields: [personId], references: [id])
+
+  membershipDate   DateTime
+  baptismDate      DateTime?
+  baptismPlace     String?
+  previousChurch   String?
+  transferDate     DateTime?
+  status           MemberStatus @default(ACTIVE)
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@map("members")
+}
+
+// ─────────────────────────────────────────────
+// FAMILY
+// ─────────────────────────────────────────────
+
+model Family {
+  id        String         @id @default(cuid())
+  name      String
+  createdAt DateTime       @default(now())
+  members   FamilyMember[]
+
+  @@map("families")
+}
+
+model FamilyMember {
+  id           String             @id @default(cuid())
+  familyId     String
+  family       Family             @relation(fields: [familyId], references: [id])
+  personId     String
+  person       Person             @relation(fields: [personId], references: [id])
+  relationship FamilyRelationship
+  isPrimary    Boolean            @default(false)
+
+  @@unique([familyId, personId])
+  @@map("family_members")
+}
+
+// ─────────────────────────────────────────────
+// BOARD (Diretoria)
+// ─────────────────────────────────────────────
+
+model BoardMember {
+  id          String    @id @default(cuid())
+  personId    String
+  person      Person    @relation(fields: [personId], references: [id])
+  branchId    String
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  role        BoardRole
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  @@map("board_members")
+}
+
+// ─────────────────────────────────────────────
+// USER (Autenticação e controle de acesso)
+// ─────────────────────────────────────────────
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  role           UserRole @default(MEMBER)
+  branchId       String
+  branch         Branch   @relation(fields: [branchId], references: [id])
+  personId       String?  @unique
+  person         Person?  @relation(fields: [personId], references: [id])
+
+  isActive       Boolean  @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  refreshTokens  RefreshToken[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────
+// MINISTRY (Ministérios)
+// ─────────────────────────────────────────────
+
+model Ministry {
+  id          String           @id @default(cuid())
+  branchId    String
+  branch      Branch           @relation(fields: [branchId], references: [id])
+  name        String
+  description String?
+  coverImageUrl String?
+  isPublic    Boolean          @default(true)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  members     MinistryMember[]
+  eventLinks  EventMinistry[]
+
+  @@map("ministries")
+}
+
+model MinistryMember {
+  id          String    @id @default(cuid())
+  ministryId  String
+  ministry    Ministry  @relation(fields: [ministryId], references: [id])
+  personId    String
+  person      Person    @relation(fields: [personId], references: [id])
+  isLeader    Boolean   @default(false)
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+
+  @@unique([ministryId, personId])
+  @@map("ministry_members")
+}
+
+// ─────────────────────────────────────────────
+// EVENTS
+// ─────────────────────────────────────────────
+
+model Event {
+  id              String          @id @default(cuid())
+  branchId        String
+  branch          Branch          @relation(fields: [branchId], references: [id])
+  title           String
+  description     String?
+  location        String?
+  startDate       DateTime
+  endDate         DateTime?
+  coverImageUrl   String?
+  status          EventStatus     @default(DRAFT)
+  maxCapacity     Int?
+  registrationFee Decimal?        @db.Decimal(10, 2)
+  isPublic        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  images          EventImage[]
+  ministries      EventMinistry[]
+  registrations   EventRegistration[]
+
+  @@map("events")
+}
+
+model EventImage {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  url       String
+  caption   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("event_images")
+}
+
+model EventMinistry {
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ministryId String
+  ministry   Ministry @relation(fields: [ministryId], references: [id])
+
+  @@id([eventId, ministryId])
+  @@map("event_ministries")
+}
+
+model EventRegistration {
+  id            String             @id @default(cuid())
+  eventId       String
+  event         Event              @relation(fields: [eventId], references: [id])
+  personId      String
+  person        Person             @relation(fields: [personId], references: [id])
+  status        RegistrationStatus @default(PENDING)
+  paymentStatus PaymentStatus      @default(PENDING)
+  paymentMethod PaymentMethod?
+  amount        Decimal?           @db.Decimal(10, 2)
+  notes         String?
+  registeredAt  DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  paymentOrders PaymentOrder[]
+
+  @@unique([eventId, personId])
+  @@map("event_registrations")
+}
+
+model PaymentOrder {
+  id             String        @id @default(cuid())
+  registrationId String
+  registration   EventRegistration @relation(fields: [registrationId], references: [id])
+  pixCode        String?       // copia-e-cola
+  pixQrCode      String?       // base64 QR
+  gatewayRef     String?       // ID externo no gateway
+  amount         Decimal       @db.Decimal(10, 2)
+  status         PaymentStatus @default(PENDING)
+  expiresAt      DateTime?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+
+  @@map("payment_orders")
+}
+
+// ─────────────────────────────────────────────
+// SCHEDULES (Escalas)
+// ─────────────────────────────────────────────
+
+model ServiceType {
+  id        String     @id @default(cuid())
+  branchId  String
+  branch    Branch     @relation(fields: [branchId], references: [id])
+  name      String
+  isActive  Boolean    @default(true)
+  schedules Schedule[]
+
+  @@map("service_types")
+}
+
+model ServiceRole {
+  id       String          @id @default(cuid())
+  name     String
+  slots    ScheduleSlot[]
+
+  @@map("service_roles")
+}
+
+model Schedule {
+  id            String         @id @default(cuid())
+  branchId      String
+  branch        Branch         @relation(fields: [branchId], references: [id])
+  serviceTypeId String
+  serviceType   ServiceType    @relation(fields: [serviceTypeId], references: [id])
+  date          DateTime
+  title         String?
+  notes         String?
+  status        ScheduleStatus @default(DRAFT)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  slots         ScheduleSlot[]
+
+  @@map("schedules")
+}
+
+model ScheduleSlot {
+  id          String       @id @default(cuid())
+  scheduleId  String
+  schedule    Schedule     @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  roleId      String
+  role        ServiceRole  @relation(fields: [roleId], references: [id])
+  personId    String?
+  person      Person?      @relation(fields: [personId], references: [id])
+  confirmed   Boolean      @default(false)
+  notes       String?
+
+  @@map("schedule_slots")
+}
+
+model MemberAvailability {
+  id          String  @id @default(cuid())
+  personId    String
+  person      Person  @relation(fields: [personId], references: [id])
+  dayOfWeek   Int     // 0=Dom, 1=Seg, ... 6=Sáb
+  isAvailable Boolean @default(true)
+  notes       String?
+
+  @@unique([personId, dayOfWeek])
+  @@map("member_availability")
+}
+
+// ─────────────────────────────────────────────
+// TREASURY (Tesouraria)
+// ─────────────────────────────────────────────
+
+model FinancialAccount {
+  id            String   @id @default(cuid())
+  branchId      String
+  branch        Branch   @relation(fields: [branchId], references: [id])
+  name          String
+  bank          String?
+  agency        String?
+  accountNumber String?
+  initialBalance Decimal @default(0) @db.Decimal(15, 2)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  transactions       Transaction[]
+  reconciliations    BankReconciliation[]
+
+  @@map("financial_accounts")
+}
+
+model TransactionCategory {
+  id       String          @id @default(cuid())
+  branchId String
+  branch   Branch          @relation(fields: [branchId], references: [id])
+  name     String
+  type     TransactionType
+  parentId String?
+  parent   TransactionCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children TransactionCategory[] @relation("CategoryHierarchy")
+
+  transactions Transaction[]
+
+  @@map("transaction_categories")
+}
+
+model Transaction {
+  id           String              @id @default(cuid())
+  branchId     String
+  branch       Branch              @relation(fields: [branchId], references: [id])
+  accountId    String
+  account      FinancialAccount    @relation(fields: [accountId], references: [id])
+  categoryId   String
+  category     TransactionCategory @relation(fields: [categoryId], references: [id])
+  type         TransactionType
+  amount       Decimal             @db.Decimal(15, 2)
+  date         DateTime
+  description  String
+  personId     String?             // membro vinculado (dízimo, oferta)
+  contractId   String?             // contrato recorrente
+  contract     RecurringContract?  @relation(fields: [contractId], references: [id])
+  isReconciled Boolean             @default(false)
+  receiptUrl   String?
+  notes        String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  tithe         Tithe?
+  namedOffering NamedOffering?
+
+  @@map("transactions")
+}
+
+model RecurringContract {
+  id          String           @id @default(cuid())
+  branchId    String
+  branch      Branch           @relation(fields: [branchId], references: [id])
+  description String
+  supplier    String?
+  amount      Decimal          @db.Decimal(15, 2)
+  type        TransactionType  @default(EXPENSE)
+  recurrence  RecurrencePeriod
+  startDate   DateTime
+  endDate     DateTime?
+  nextDueDate DateTime
+  isActive    Boolean          @default(true)
+  notes       String?
+  createdAt   DateTime         @default(now())
+
+  transactions Transaction[]
+
+  @@map("recurring_contracts")
+}
+
+model Tithe {
+  id            String      @id @default(cuid())
+  personId      String
+  person        Person      @relation(fields: [personId], references: [id])
+  transactionId String      @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  monthRef      String      // "2025-01"
+  amount        Decimal     @db.Decimal(15, 2)
+  branchId      String
+
+  @@map("tithes")
+}
+
+model NamedOffering {
+  id            String      @id @default(cuid())
+  personId      String
+  person        Person      @relation(fields: [personId], references: [id])
+  transactionId String      @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  offeringName  String
+  amount        Decimal     @db.Decimal(15, 2)
+  branchId      String
+
+  @@map("named_offerings")
+}
+
+model BankReconciliation {
+  id        String               @id @default(cuid())
+  accountId String
+  account   FinancialAccount     @relation(fields: [accountId], references: [id])
+  monthRef  String               // "2025-01"
+  status    ReconciliationStatus @default(OPEN)
+  closedAt  DateTime?
+  notes     String?
+  createdAt DateTime             @default(now())
+
+  @@unique([accountId, monthRef])
+  @@map("bank_reconciliations")
+}
+
+model MonthlyReport {
+  id           String    @id @default(cuid())
+  branchId     String
+  monthRef     String    // "2025-01"
+  incomeTotal  Decimal   @db.Decimal(15, 2)
+  expenseTotal Decimal   @db.Decimal(15, 2)
+  balance      Decimal   @db.Decimal(15, 2)
+  closedAt     DateTime?
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([branchId, monthRef])
+  @@map("monthly_reports")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String   // CREATE, UPDATE, DELETE
+  resource   String   // nome da tabela/entidade
+  resourceId String
+  oldData    Json?
+  newData    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@map("audit_logs")
+}
