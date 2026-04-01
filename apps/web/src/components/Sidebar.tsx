@@ -21,44 +21,79 @@ export function Sidebar() {
   const logout = useAuthStore((s) => s.logout)
 
   return (
-    <aside className="w-64 bg-card border-r flex flex-col">
-      <div className="p-6 border-b">
-        <h1 className="text-xl font-bold text-primary">MyChurch</h1>
+    <aside className="w-[220px] shrink-0 flex flex-col h-full" style={{ backgroundColor: 'hsl(var(--sidebar))' }}>
+      {/* Logo */}
+      <div className="h-16 flex items-center px-5 shrink-0" style={{ borderBottom: '1px solid hsl(var(--sidebar-border))' }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <Church className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-display font-bold text-white text-[17px] tracking-tight leading-none">
+            MyChurch
+          </span>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      {/* Nav */}
+      <nav className="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto">
+        <p className="px-2 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'hsl(var(--sidebar-foreground))' }}>
+          Menu
+        </p>
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                  ? 'text-white'
+                  : 'hover:text-white',
               )
             }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? 'hsl(var(--sidebar-item-active))' : undefined,
+              color: isActive ? 'white' : 'hsl(var(--sidebar-foreground))',
+            })}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget
+              if (!el.classList.contains('active')) {
+                el.style.backgroundColor = 'hsl(var(--sidebar-item-hover))'
+              }
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget
+              if (!el.classList.contains('active')) {
+                el.style.backgroundColor = ''
+              }
+            }}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-[15px] h-[15px] shrink-0" />
             {label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-4 border-t space-y-1">
+      {/* Bottom */}
+      <div className="px-3 pb-4 space-y-0.5 shrink-0" style={{ borderTop: '1px solid hsl(var(--sidebar-border))', paddingTop: '12px' }}>
         <NavLink
           to="/configuracoes"
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150"
+          style={{ color: 'hsl(var(--sidebar-foreground))' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'hsl(var(--sidebar-item-hover))'; e.currentTarget.style.color = 'white' }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'hsl(var(--sidebar-foreground))' }}
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-[15px] h-[15px] shrink-0" />
           Configurações
         </NavLink>
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150"
+          style={{ color: 'hsl(var(--sidebar-foreground))' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.12)'; e.currentTarget.style.color = 'rgb(248,113,113)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'hsl(var(--sidebar-foreground))' }}
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-[15px] h-[15px] shrink-0" />
           Sair
         </button>
       </div>

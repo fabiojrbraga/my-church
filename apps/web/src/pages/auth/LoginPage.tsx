@@ -5,6 +5,10 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth.store'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { AlertCircle } from 'lucide-react'
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -33,44 +37,61 @@ export function LoginPage() {
   })
 
   return (
-    <div className="bg-card rounded-xl border shadow-sm p-8">
-      <h2 className="text-xl font-semibold mb-6">Entrar no sistema</h2>
+    <div className="bg-card rounded-2xl border card-shadow-md p-8">
+      <div className="mb-7">
+        <h1 className="font-display font-bold text-2xl text-foreground tracking-tight">
+          Bem-vindo(a) de volta
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1.5">
+          Entre com suas credenciais para continuar
+        </p>
+      </div>
+
       <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">E-mail</label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="email">E-mail</Label>
+          <Input
+            id="email"
             {...register('email')}
             type="email"
             placeholder="seu@email.com"
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            error={!!errors.email}
+            autoComplete="email"
           />
-          {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {errors.email.message}
+            </p>
+          )}
         </div>
 
-        <div>
-          <label className="text-sm font-medium">Senha</label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="password">Senha</Label>
+          <Input
+            id="password"
             {...register('password')}
             type="password"
             placeholder="••••••••"
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            error={!!errors.password}
+            autoComplete="current-password"
           />
-          {errors.password && <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>}
+          {errors.password && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {errors.password.message}
+            </p>
+          )}
         </div>
 
         {errors.root && (
-          <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
+          <div className="flex items-center gap-2.5 text-sm text-destructive bg-destructive/8 border border-destructive/20 px-3.5 py-3 rounded-lg">
+            <AlertCircle className="w-4 h-4 shrink-0" />
             {errors.root.message}
-          </p>
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-        >
-          {isPending ? 'Entrando...' : 'Entrar'}
-        </button>
+        <Button type="submit" loading={isPending} className="w-full mt-2" size="lg">
+          {isPending ? 'Entrando...' : 'Entrar no sistema'}
+        </Button>
       </form>
     </div>
   )
