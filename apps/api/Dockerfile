@@ -38,13 +38,15 @@ ENV NODE_ENV=production
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY packages/database/prisma ./prisma
+COPY apps/api/entrypoint.sh ./entrypoint.sh
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 appuser && \
+    chmod +x entrypoint.sh && \
     chown -R appuser:nodejs /app
 
 USER appuser
 
 EXPOSE 3333
 
-CMD ["node", "dist/server.js"]
+CMD ["./entrypoint.sh"]
