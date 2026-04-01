@@ -14,7 +14,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@my-church/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src/**/*"],

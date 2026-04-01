@@ -10,14 +10,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         ref={ref}
+        aria-invalid={error}
         className={cn(
-          'flex h-10 w-full rounded-lg border bg-card px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground',
-          'transition-colors duration-150',
-          'focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary',
+          'focus-ring flex h-11 w-full rounded-2xl border bg-surface/85 px-4 py-2.5 text-sm text-foreground shadow-sm shadow-slate-950/5 placeholder:text-muted-foreground',
+          'transition-all duration-200',
           'disabled:cursor-not-allowed disabled:opacity-50',
           error
-            ? 'border-destructive focus:ring-destructive/30 focus:border-destructive'
-            : 'border-input hover:border-ring/50',
+            ? 'border-destructive/60 focus-visible:ring-destructive/25'
+            : 'border-input/80 hover:border-ring/25 focus:border-primary/50',
           className,
         )}
         {...props}

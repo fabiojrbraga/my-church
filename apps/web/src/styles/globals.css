@@ -6,26 +6,33 @@
 
 @layer base {
   :root {
-    --background: 210 20% 96%;
+    color-scheme: light;
+
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
+
+    --surface: 0 0% 100%;
+    --surface-alt: 210 33% 99%;
+    --surface-muted: 214 32% 95%;
+    --surface-foreground: 222 47% 14%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
-    --border: 214 32% 89%;
-    --input: 214 32% 89%;
+    --border: 214 26% 86%;
+    --input: 214 26% 82%;
 
-    --primary: 221 83% 53%;
+    --primary: 217 91% 51%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 94%;
+    --secondary: 210 35% 94%;
     --secondary-foreground: 222 47% 20%;
 
     --muted: 210 30% 94%;
     --muted-foreground: 215 16% 50%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 30 80% 20%;
+    --accent: 31 95% 60%;
+    --accent-foreground: 24 82% 18%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -33,36 +40,60 @@
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
-    --ring: 221 83% 53%;
-    --radius: 0.625rem;
+    --warning: 38 92% 50%;
+    --warning-foreground: 32 95% 16%;
 
-    /* Sidebar */
-    --sidebar: 222 47% 10%;
-    --sidebar-border: 222 30% 16%;
-    --sidebar-foreground: 215 20% 58%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    --ring: 217 91% 51%;
+    --radius: 1rem;
+
+    --sidebar: 224 38% 12%;
+    --sidebar-border: 222 27% 18%;
+    --sidebar-foreground: 215 18% 68%;
     --sidebar-foreground-active: 0 0% 100%;
-    --sidebar-item-active: 222 47% 16%;
-    --sidebar-item-hover: 222 30% 14%;
+    --sidebar-item-active: 223 31% 19%;
+    --sidebar-item-hover: 223 24% 16%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
   }
 
   html {
+    min-height: 100%;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.08), transparent 26%),
+      radial-gradient(circle at top right, hsl(var(--accent) / 0.1), transparent 20%),
+      linear-gradient(180deg, hsl(210 43% 99%), hsl(var(--background)));
+    @apply text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: -0.025em;
   }
 }
 
@@ -71,33 +102,51 @@
     font-family: 'Outfit', sans-serif;
   }
 
-  .sidebar-bg {
-    background-color: hsl(var(--sidebar));
+  .surface-panel {
+    @apply rounded-[1.5rem] border border-border/60 bg-surface/90 shadow-soft backdrop-blur-sm;
   }
 
-  .text-sidebar-fg {
-    color: hsl(var(--sidebar-foreground));
+  .surface-subtle {
+    @apply rounded-[1.25rem] border border-border/50 bg-surface-muted/75 backdrop-blur-sm;
   }
 
-  .text-sidebar-active {
-    color: hsl(var(--sidebar-foreground-active));
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
-  .sidebar-item-active {
-    background-color: hsl(var(--sidebar-item-active));
-    color: hsl(var(--sidebar-foreground-active));
+  .page-grid {
+    @apply grid gap-4 sm:gap-5 xl:gap-6;
   }
 
-  .sidebar-item-hover:hover {
-    background-color: hsl(var(--sidebar-item-hover));
-    color: hsl(var(--sidebar-foreground-active));
+  .text-balance {
+    text-wrap: balance;
   }
 
   .card-shadow {
-    box-shadow: 0 1px 3px 0 rgba(0,0,0,.06), 0 1px 2px -1px rgba(0,0,0,.06);
+    @apply shadow-panel;
   }
 
   .card-shadow-md {
-    box-shadow: 0 4px 16px -2px rgba(0,0,0,.08), 0 2px 6px -2px rgba(0,0,0,.06);
+    @apply shadow-soft;
   }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.45);
 }

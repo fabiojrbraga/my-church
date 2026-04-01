@@ -31,6 +31,9 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ accessToken: null, refreshToken: null, user: null }),
       isAuthenticated: () => !!get().accessToken && !!get().user,
     }),
-    { name: 'my-church-auth', partialize: (s) => ({ refreshToken: s.refreshToken, user: s.user }) },
+    {
+      name: 'my-church-auth',
+      partialize: (s) => ({ accessToken: s.accessToken, refreshToken: s.refreshToken, user: s.user }),
+    },
   ),
 )

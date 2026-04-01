@@ -5,10 +5,11 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth.store'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, LockKeyhole } from 'lucide-react'
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -37,18 +38,24 @@ export function LoginPage() {
   })
 
   return (
-    <div className="bg-card rounded-2xl border card-shadow-md p-8">
-      <div className="mb-7">
-        <h1 className="font-display font-bold text-2xl text-foreground tracking-tight">
-          Bem-vindo(a) de volta
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1.5">
-          Entre com suas credenciais para continuar
-        </p>
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <Badge variant="secondary" className="w-fit">
+          Acesso da equipe
+        </Badge>
+
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+            Entre para continuar a operação.
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Faça login com a conta administrativa da sua igreja para acessar os módulos e o painel principal.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-4">
-        <div className="space-y-1.5">
+      <form onSubmit={handleSubmit((d) => mutate(d))} className="space-y-5">
+        <div className="space-y-2">
           <Label htmlFor="email">E-mail</Label>
           <Input
             id="email"
@@ -59,13 +66,13 @@ export function LoginPage() {
             autoComplete="email"
           />
           {errors.email && (
-            <p className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {errors.email.message}
+            <p className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" /> {errors.email.message}
             </p>
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="password">Senha</Label>
           <Input
             id="password"
@@ -76,23 +83,36 @@ export function LoginPage() {
             autoComplete="current-password"
           />
           {errors.password && (
-            <p className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {errors.password.message}
+            <p className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" /> {errors.password.message}
             </p>
           )}
         </div>
 
         {errors.root && (
-          <div className="flex items-center gap-2.5 text-sm text-destructive bg-destructive/8 border border-destructive/20 px-3.5 py-3 rounded-lg">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div className="flex items-center gap-2.5 rounded-2xl border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {errors.root.message}
           </div>
         )}
 
-        <Button type="submit" loading={isPending} className="w-full mt-2" size="lg">
+        <Button type="submit" loading={isPending} className="mt-2 w-full" size="lg">
           {isPending ? 'Entrando...' : 'Entrar no sistema'}
         </Button>
       </form>
+
+      <div className="surface-subtle flex items-start gap-3 p-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <LockKeyhole className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Sessão contínua e navegação simplificada</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            A experiência foi ajustada para mobile e desktop, com navegação consistente, componentes reutilizáveis e
+            um app shell mais fluido para as próximas telas.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

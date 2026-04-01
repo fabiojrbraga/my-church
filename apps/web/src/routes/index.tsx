@@ -4,6 +4,18 @@ import { AppLayout } from '@/layouts/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
+
+const moduleRoutes = [
+  'membros',
+  'filiais',
+  'eventos',
+  'ministerios',
+  'escalas',
+  'tesouraria',
+  'escalas-musica',
+  'configuracoes',
+] as const
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +33,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
-      // Módulos serão adicionados aqui
+      ...moduleRoutes.map((path) => ({ path, element: <ModulePlaceholderPage /> })),
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },
