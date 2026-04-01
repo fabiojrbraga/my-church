@@ -19,6 +19,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Compila o package interno
+RUN npm run build --workspace=packages/shared
+
 RUN npm run build --workspace=apps/web
 
 # ──────────────────────────────────────────────
