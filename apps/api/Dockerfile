@@ -37,7 +37,6 @@ ENV NODE_ENV=production
 # Apenas dependências de produção
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/database/node_modules/.prisma ./node_modules/.prisma
 COPY packages/database/prisma ./prisma
 
 RUN addgroup --system --gid 1001 nodejs && \
