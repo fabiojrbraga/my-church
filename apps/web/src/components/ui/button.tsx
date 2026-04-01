@@ -45,14 +45,10 @@ interface ButtonProps
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading, disabled, children, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
-
-    return (
-      <Comp
-        ref={ref}
-        disabled={disabled || loading}
-        className={cn(buttonVariants({ variant, size }), className)}
-        {...props}
-      >
+    const content = asChild ? (
+      children
+    ) : (
+      <>
         {loading && (
           <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -60,6 +56,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </svg>
         )}
         {children}
+      </>
+    )
+
+    return (
+      <Comp
+        ref={ref}
+        disabled={asChild ? undefined : disabled || loading}
+        aria-busy={loading || undefined}
+        className={cn(buttonVariants({ variant, size }), className)}
+        {...props}
+      >
+        {content}
       </Comp>
     )
   },
