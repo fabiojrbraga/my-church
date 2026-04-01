@@ -46,8 +46,8 @@ cp .env.example .env
 # 3. Suba banco e Redis
 docker compose up postgres redis -d
 
-# 4. Execute migrations e seed
-npm run db:migrate
+# 4. Sincronize schema e seed
+npm run db:push
 npm run db:seed
 
 # 5. Inicie em modo dev (API + Web simultâneos)
@@ -103,11 +103,11 @@ O Easypanel detecta o `Dockerfile` automaticamente a partir do repositório.
 - Porta: `80`
 - Domínio: `app.seudominio.com.br`
 
-### Migrations em produção
+### Schema em produção
 
 Após o deploy da API, execute pelo terminal do Easypanel (aba **Console** do serviço api):
 ```bash
-npx prisma migrate deploy --schema=./prisma/schema.prisma
+npx prisma db push --schema=./prisma/schema.prisma
 ```
 
 ---
