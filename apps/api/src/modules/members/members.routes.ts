@@ -5,6 +5,7 @@ import {
   KidsAgeGroup,
   MaritalStatus,
   MemberStatus,
+  PersonRelationshipType,
   PersonCategory,
   UserRole,
 } from '@my-church/database'
@@ -27,8 +28,21 @@ const relationCountKeys = [
   'tithes',
   'namedOfferings',
   'availability',
+  'outgoingRelationships',
+  'incomingRelationships',
 ] as const
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
+const relationshipDirectionValues = [
+  'PARENT_OF',
+  'CHILD_OF',
+  'SPOUSE_OF',
+  'SIBLING_OF',
+  'GRANDPARENT_OF',
+  'GRANDCHILD_OF',
+  'GUARDIAN_OF',
+  'DEPENDENT_OF',
+  'OTHER',
+] as const
 
 const emptyToUndefined = (value: unknown) => {
   if (typeof value !== 'string') return value
@@ -105,6 +119,12 @@ const memberBodySchema = z
 
 const memberStatusSchema = z.object({
   status: z.nativeEnum(MemberStatus),
+})
+
+const relationshipBodySchema = z.object({
+  relatedMemberId: z.string().trim().min(1, 'Selecione o membro relacionado'),
+  type: z.enum(relationshipDirectionValues),
+  notes: optionalStringSchema,
 })
 
 const branchOptionSelect = {
@@ -185,11 +205,221 @@ const memberSelect = {
           tithes: true,
           namedOfferings: true,
           availability: true,
+          outgoingRelationships: true,
+          incomingRelationships: true,
         },
       },
     },
   },
 } as const
+
+const relationshipSelect = {
+  id: true,
+  sourcePersonId: true,
+  targetPersonId: true,
+  type: true,
+  notes: true,
+  createdAt: true,
+  updatedAt: true,
+  sourcePerson: {
+    select: {
+      id: true,
+      fullName: true,
+      preferredName: true,
+      gender: true,
+      branchId: true,
+      member: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
+      branch: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+  targetPerson: {
+    select: {
+      id: true,
+      fullName: true,
+      preferredName: true,
+      gender: true,
+      branchId: true,
+      member: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
+      branch: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+} as const
+
+type RelationshipInputType = (typeof relationshipDirectionValues)[number]
+
+function sortPair(sourcePersonId: string, targetPersonId: string) {
+  return sourcePersonId.localeCompare(targetPersonId) <= 0
+    ? [sourcePersonId, targetPersonId] as const
+    : [targetPersonId, sourcePersonId] as const
+}
+
+function normalizeRelationshipInput(currentPersonId: string, relatedPersonId: string, type: RelationshipInputType) {
+  switch (type) {
+    case 'PARENT_OF':
+      return { sourcePersonId: currentPersonId, targetPersonId: relatedPersonId, type: PersonRelationshipType.PARENT_OF }
+    case 'CHILD_OF':
+      return { sourcePersonId: relatedPersonId, targetPersonId: currentPersonId, type: PersonRelationshipType.PARENT_OF }
+    case 'SPOUSE_OF': {
+      const [sourcePersonId, targetPersonId] = sortPair(currentPersonId, relatedPersonId)
+      return { sourcePersonId, targetPersonId, type: PersonRelationshipType.SPOUSE_OF }
+    }
+    case 'SIBLING_OF': {
+      const [sourcePersonId, targetPersonId] = sortPair(currentPersonId, relatedPersonId)
+      return { sourcePersonId, targetPersonId, type: PersonRelationshipType.SIBLING_OF }
+    }
+    case 'GRANDPARENT_OF':
+      return {
+        sourcePersonId: currentPersonId,
+        targetPersonId: relatedPersonId,
+        type: PersonRelationshipType.GRANDPARENT_OF,
+      }
+    case 'GRANDCHILD_OF':
+      return {
+        sourcePersonId: relatedPersonId,
+        targetPersonId: currentPersonId,
+        type: PersonRelationshipType.GRANDPARENT_OF,
+      }
+    case 'GUARDIAN_OF':
+      return {
+        sourcePersonId: currentPersonId,
+        targetPersonId: relatedPersonId,
+        type: PersonRelationshipType.GUARDIAN_OF,
+      }
+    case 'DEPENDENT_OF':
+      return {
+        sourcePersonId: relatedPersonId,
+        targetPersonId: currentPersonId,
+        type: PersonRelationshipType.GUARDIAN_OF,
+      }
+    case 'OTHER': {
+      const [sourcePersonId, targetPersonId] = sortPair(currentPersonId, relatedPersonId)
+      return { sourcePersonId, targetPersonId, type: PersonRelationshipType.OTHER }
+    }
+  }
+}
+
+function getPersonRoleLabel(base: 'PARENT' | 'CHILD' | 'GRANDPARENT' | 'GRANDCHILD' | 'SIBLING', gender?: string | null) {
+  switch (base) {
+    case 'PARENT':
+      return gender === 'F' ? 'Mae de' : gender === 'M' ? 'Pai de' : 'Pai/Mae de'
+    case 'CHILD':
+      return gender === 'F' ? 'Filha de' : gender === 'M' ? 'Filho de' : 'Filho(a) de'
+    case 'GRANDPARENT':
+      return gender === 'F' ? 'Avo de' : gender === 'M' ? 'Avo de' : 'Avo de'
+    case 'GRANDCHILD':
+      return gender === 'F' ? 'Neta de' : gender === 'M' ? 'Neto de' : 'Neto(a) de'
+    case 'SIBLING':
+      return gender === 'F' ? 'Irma de' : gender === 'M' ? 'Irmao de' : 'Irmao(a) de'
+  }
+}
+
+function getRelationshipLabelFromPerspective(
+  relationship: {
+    type: PersonRelationshipType
+    sourcePersonId: string
+    targetPersonId: string
+    sourcePerson: { gender: string | null }
+    targetPerson: { gender: string | null }
+  },
+  currentPersonId: string,
+) {
+  const currentIsSource = relationship.sourcePersonId === currentPersonId
+  const currentGender = currentIsSource ? relationship.sourcePerson.gender : relationship.targetPerson.gender
+
+  switch (relationship.type) {
+    case PersonRelationshipType.PARENT_OF:
+      return currentIsSource
+        ? getPersonRoleLabel('PARENT', currentGender)
+        : getPersonRoleLabel('CHILD', currentGender)
+    case PersonRelationshipType.SPOUSE_OF:
+      return 'Conjuge de'
+    case PersonRelationshipType.SIBLING_OF:
+      return getPersonRoleLabel('SIBLING', currentGender)
+    case PersonRelationshipType.GRANDPARENT_OF:
+      return currentIsSource
+        ? getPersonRoleLabel('GRANDPARENT', currentGender)
+        : getPersonRoleLabel('GRANDCHILD', currentGender)
+    case PersonRelationshipType.GUARDIAN_OF:
+      return currentIsSource ? 'Responsavel por' : 'Dependente de'
+    case PersonRelationshipType.OTHER:
+      return 'Vinculo familiar com'
+  }
+}
+
+function serializeRelationship(
+  relationship: {
+    id: string
+    sourcePersonId: string
+    targetPersonId: string
+    type: PersonRelationshipType
+    notes: string | null
+    createdAt: Date
+    updatedAt: Date
+    sourcePerson: {
+      id: string
+      fullName: string
+      preferredName: string | null
+      gender: string | null
+      branchId: string
+      member: { id: string; status: MemberStatus } | null
+      branch: { id: string; name: string }
+    }
+    targetPerson: {
+      id: string
+      fullName: string
+      preferredName: string | null
+      gender: string | null
+      branchId: string
+      member: { id: string; status: MemberStatus } | null
+      branch: { id: string; name: string }
+    }
+  },
+  currentPersonId: string,
+) {
+  const currentIsSource = relationship.sourcePersonId === currentPersonId
+  const relative = currentIsSource ? relationship.targetPerson : relationship.sourcePerson
+
+  return {
+    id: relationship.id,
+    type: relationship.type,
+    label: getRelationshipLabelFromPerspective(relationship, currentPersonId),
+    notes: relationship.notes,
+    createdAt: relationship.createdAt,
+    updatedAt: relationship.updatedAt,
+    member: relative.member
+      ? {
+          id: relative.member.id,
+          personId: relative.id,
+          fullName: relative.fullName,
+          preferredName: relative.preferredName,
+          branchId: relative.branchId,
+          branchName: relative.branch.name,
+          gender: relative.gender,
+          status: relative.member.status,
+        }
+      : null,
+  }
+}
 
 function canManageAllBranches(role: UserRole) {
   return role === UserRole.SUPER_ADMIN || role === UserRole.BOARD_MEMBER
@@ -248,6 +478,26 @@ async function getMemberOrThrow(memberId: string) {
 
   if (!member) {
     throw new NotFoundError('Membro')
+  }
+
+  return member
+}
+
+function getAccessibleMemberWhere(role: UserRole, currentBranchId: string) {
+  return canManageAllBranches(role) ? {} : { person: { is: { branchId: currentBranchId } } }
+}
+
+async function getRelationshipTargetMemberOrThrow(memberId: string, role: UserRole, currentBranchId: string) {
+  const member = await prisma.member.findFirst({
+    where: {
+      id: memberId,
+      ...getAccessibleMemberWhere(role, currentBranchId),
+    },
+    select: memberSelect,
+  })
+
+  if (!member) {
+    throw new NotFoundError('Membro relacionado')
   }
 
   return member
@@ -374,6 +624,83 @@ export async function memberRoutes(app: FastifyInstance) {
   )
 
   app.get(
+    '/:id/relationship-options',
+    { preHandler: [managementGuard] },
+    async (request) => {
+      const params = z.object({ id: z.string().min(1) }).parse(request.params)
+      const member = await getMemberOrThrow(params.id)
+
+      ensureMemberAccess(member.person.branchId, request.user.role, request.user.branchId)
+
+      const relatedMembers = await prisma.member.findMany({
+        where: {
+          id: { not: params.id },
+          ...getAccessibleMemberWhere(request.user.role, request.user.branchId),
+        },
+        select: {
+          id: true,
+          personId: true,
+          status: true,
+          person: {
+            select: {
+              fullName: true,
+              preferredName: true,
+              branchId: true,
+              branch: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ person: { fullName: 'asc' } }],
+      })
+
+      return {
+        items: relatedMembers.map((relatedMember) => ({
+          id: relatedMember.id,
+          personId: relatedMember.personId,
+          fullName: relatedMember.person.fullName,
+          preferredName: relatedMember.person.preferredName,
+          branchId: relatedMember.person.branchId,
+          branchName: relatedMember.person.branch.name,
+          status: relatedMember.status,
+        })),
+      }
+    },
+  )
+
+  app.get(
+    '/:id/relationships',
+    { preHandler: [managementGuard] },
+    async (request) => {
+      const params = z.object({ id: z.string().min(1) }).parse(request.params)
+      const member = await getMemberOrThrow(params.id)
+
+      ensureMemberAccess(member.person.branchId, request.user.role, request.user.branchId)
+
+      const relationships = await prisma.personRelationship.findMany({
+        where: {
+          OR: [{ sourcePersonId: member.person.id }, { targetPersonId: member.person.id }],
+        },
+        select: relationshipSelect,
+        orderBy: [{ createdAt: 'asc' }],
+      })
+
+      const items = relationships
+        .filter((relationship) => {
+          const relative = relationship.sourcePersonId === member.person.id ? relationship.targetPerson : relationship.sourcePerson
+          return !!relative.member && (canManageAllBranches(request.user.role) || relative.branchId === request.user.branchId)
+        })
+        .map((relationship) => serializeRelationship(relationship, member.person.id))
+
+      return { items }
+    },
+  )
+
+  app.get(
     '/:id',
     { preHandler: [managementGuard] },
     async (request) => {
@@ -383,6 +710,50 @@ export async function memberRoutes(app: FastifyInstance) {
       ensureMemberAccess(member.person.branchId, request.user.role, request.user.branchId)
 
       return { item: serializeMember(member) }
+    },
+  )
+
+  app.post(
+    '/:id/relationships',
+    { preHandler: [managementGuard] },
+    async (request, reply) => {
+      const params = z.object({ id: z.string().min(1) }).parse(request.params)
+      const payload = relationshipBodySchema.parse(request.body)
+      const member = await getMemberOrThrow(params.id)
+
+      ensureMemberAccess(member.person.branchId, request.user.role, request.user.branchId)
+
+      const relatedMember = await getRelationshipTargetMemberOrThrow(
+        payload.relatedMemberId,
+        request.user.role,
+        request.user.branchId,
+      )
+
+      if (relatedMember.person.id === member.person.id) {
+        throw new ConflictError('Selecione outro membro para criar o vinculo familiar')
+      }
+
+      const normalized = normalizeRelationshipInput(member.person.id, relatedMember.person.id, payload.type)
+      const existingRelationship = await prisma.personRelationship.findFirst({
+        where: normalized,
+        select: { id: true },
+      })
+
+      if (existingRelationship) {
+        throw new ConflictError('Este vinculo familiar ja esta cadastrado')
+      }
+
+      const relationship = await prisma.personRelationship.create({
+        data: {
+          ...normalized,
+          notes: payload.notes,
+        },
+        select: relationshipSelect,
+      })
+
+      return reply.status(201).send({
+        item: serializeRelationship(relationship, member.person.id),
+      })
     },
   )
 
@@ -521,6 +892,50 @@ export async function memberRoutes(app: FastifyInstance) {
       })
 
       return { item: serializeMember(member) }
+    },
+  )
+
+  app.delete(
+    '/:id/relationships/:relationshipId',
+    { preHandler: [managementGuard] },
+    async (request, reply) => {
+      const params = z
+        .object({
+          id: z.string().min(1),
+          relationshipId: z.string().min(1),
+        })
+        .parse(request.params)
+      const member = await getMemberOrThrow(params.id)
+
+      ensureMemberAccess(member.person.branchId, request.user.role, request.user.branchId)
+
+      const relationship = await prisma.personRelationship.findUnique({
+        where: { id: params.relationshipId },
+        select: relationshipSelect,
+      })
+
+      if (!relationship) {
+        throw new NotFoundError('Vinculo familiar')
+      }
+
+      const belongsToCurrentMember =
+        relationship.sourcePersonId === member.person.id || relationship.targetPersonId === member.person.id
+
+      if (!belongsToCurrentMember) {
+        throw new NotFoundError('Vinculo familiar')
+      }
+
+      const relative = relationship.sourcePersonId === member.person.id ? relationship.targetPerson : relationship.sourcePerson
+
+      if (!canManageAllBranches(request.user.role) && relative.branchId !== request.user.branchId) {
+        throw new ForbiddenError('Voce nao pode remover vinculos com membros de outra filial')
+      }
+
+      await prisma.personRelationship.delete({
+        where: { id: params.relationshipId },
+      })
+
+      return reply.status(204).send()
     },
   )
 

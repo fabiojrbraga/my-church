@@ -1,5 +1,5 @@
 // ============================================================
-// Labels em pt-BR para todos os enums do domínio
+// Labels em pt-BR para todos os enums do dominio
 // Uso: labels.tipoPessoa[PersonCategory.MEMBER] => "Membro"
 // ============================================================
 
@@ -7,17 +7,17 @@ export const labels = {
   tipoPessoa: {
     MEMBER: 'Membro',
     VISITOR_OCCASIONAL: 'Visitante Eventual',
-    VISITOR_FREQUENT: 'Visitante Assíduo',
-    PROSPECTIVE_MEMBER: 'Em Preparação',
+    VISITOR_FREQUENT: 'Visitante Assiduo',
+    PROSPECTIVE_MEMBER: 'Em Preparacao',
     KIDS_MEMBER: 'Membro Kids',
   },
 
   faixaEtariaKids: {
-    NURSERY: 'Berçário (0-2 anos)',
+    NURSERY: 'Bercario (0-2 anos)',
     TODDLER: 'Maternal (3-4 anos)',
     JUNIOR: 'Juniores (5-7 anos)',
-    CHILDREN: 'Crianças (8-10 anos)',
-    PRE_TEEN: 'Pré-adolescente (11-12 anos)',
+    CHILDREN: 'Criancas (8-10 anos)',
+    PRE_TEEN: 'Pre-adolescente (11-12 anos)',
   },
 
   statusMembro: {
@@ -29,20 +29,29 @@ export const labels = {
 
   relacionamentoFamiliar: {
     FATHER: 'Pai',
-    MOTHER: 'Mãe',
+    MOTHER: 'Mae',
     SON: 'Filho',
     DAUGHTER: 'Filha',
-    SPOUSE: 'Cônjuge',
-    SIBLING: 'Irmão/Irmã',
-    GRANDPARENT: 'Avô/Avó',
+    SPOUSE: 'Conjuge',
+    SIBLING: 'Irmao/Irma',
+    GRANDPARENT: 'Avo/Avo',
     GRANDCHILD: 'Neto/Neta',
     OTHER: 'Outro',
+  },
+
+  tipoVinculoFamiliar: {
+    PARENT_OF: 'Pai/Mae de',
+    SPOUSE_OF: 'Conjuge de',
+    SIBLING_OF: 'Irmao/Irma de',
+    GRANDPARENT_OF: 'Avo/Avo de',
+    GUARDIAN_OF: 'Responsavel por',
+    OTHER: 'Vinculo familiar',
   },
 
   tipoFilial: {
     HEADQUARTERS: 'Matriz',
     BRANCH: 'Filial',
-    CONGREGATION: 'Congregação',
+    CONGREGATION: 'Congregacao',
   },
 
   papelUsuario: {
@@ -51,7 +60,7 @@ export const labels = {
     BRANCH_ADMIN: 'Administrador da Filial',
     SECRETARY: 'Secretaria',
     TREASURER: 'Tesoureiro',
-    MINISTRY_LEADER: 'Líder de Ministério',
+    MINISTRY_LEADER: 'Lider de Ministerio',
     MEMBER: 'Membro',
   },
 
@@ -59,8 +68,8 @@ export const labels = {
     PRESIDENT: 'Presidente',
     VICE_PRESIDENT: 'Vice-Presidente',
     TREASURER: 'Tesoureiro',
-    SECRETARY: 'Secretário(a)',
-    FINANCIAL_SECRETARY: 'Secretário(a) Financeiro(a)',
+    SECRETARY: 'Secretario(a)',
+    FINANCIAL_SECRETARY: 'Secretario(a) Financeiro(a)',
     BOARD_MEMBER: 'Membro da Diretoria',
     FISCAL_COUNCIL: 'Conselho Fiscal',
   },
@@ -69,8 +78,8 @@ export const labels = {
     SINGLE: 'Solteiro(a)',
     MARRIED: 'Casado(a)',
     DIVORCED: 'Divorciado(a)',
-    WIDOWED: 'Viúvo(a)',
-    COMMON_LAW: 'União Estável',
+    WIDOWED: 'Viuvo(a)',
+    COMMON_LAW: 'Uniao Estavel',
   },
 
   statusEvento: {
@@ -97,10 +106,10 @@ export const labels = {
 
   formaPagamento: {
     PIX: 'PIX',
-    CREDIT_CARD: 'Cartão de Crédito',
-    DEBIT_CARD: 'Cartão de Débito',
+    CREDIT_CARD: 'Cartao de Credito',
+    DEBIT_CARD: 'Cartao de Debito',
     CASH: 'Dinheiro',
-    BANK_TRANSFER: 'Transferência Bancária',
+    BANK_TRANSFER: 'Transferencia Bancaria',
     EXEMPT: 'Isento',
   },
 
@@ -112,11 +121,11 @@ export const labels = {
 
   tipoTransacao: {
     INCOME: 'Entrada',
-    EXPENSE: 'Saída',
+    EXPENSE: 'Saida',
   },
 
   periodicidade: {
-    DAILY: 'Diária',
+    DAILY: 'Diaria',
     WEEKLY: 'Semanal',
     MONTHLY: 'Mensal',
     QUARTERLY: 'Trimestral',
@@ -131,10 +140,10 @@ export const labels = {
   diaDaSemana: {
     0: 'Domingo',
     1: 'Segunda-feira',
-    2: 'Terça-feira',
+    2: 'Terca-feira',
     3: 'Quarta-feira',
     4: 'Quinta-feira',
     5: 'Sexta-feira',
-    6: 'Sábado',
+    6: 'Sabado',
   },
 } as const

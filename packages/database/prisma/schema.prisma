@@ -57,6 +57,15 @@ enum FamilyRelationship {
   OTHER
 }
 
+enum PersonRelationshipType {
+  PARENT_OF
+  SPOUSE_OF
+  SIBLING_OF
+  GRANDPARENT_OF
+  GUARDIAN_OF
+  OTHER
+}
+
 enum UserRole {
   SUPER_ADMIN      // Super administrador (Matriz)
   BOARD_MEMBER     // Diretoria
@@ -250,6 +259,8 @@ model Person {
   tithes          Tithe[]
   namedOfferings  NamedOffering[]
   availability    MemberAvailability[]
+  outgoingRelationships PersonRelationship[] @relation("PersonRelationshipSource")
+  incomingRelationships PersonRelationship[] @relation("PersonRelationshipTarget")
 
   @@map("persons")
 }
@@ -296,6 +307,23 @@ model FamilyMember {
 
   @@unique([familyId, personId])
   @@map("family_members")
+}
+
+model PersonRelationship {
+  id             String                 @id @default(cuid())
+  sourcePersonId String
+  sourcePerson   Person                 @relation("PersonRelationshipSource", fields: [sourcePersonId], references: [id], onDelete: Cascade)
+  targetPersonId String
+  targetPerson   Person                 @relation("PersonRelationshipTarget", fields: [targetPersonId], references: [id], onDelete: Cascade)
+  type           PersonRelationshipType
+  notes          String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@unique([sourcePersonId, targetPersonId, type])
+  @@index([sourcePersonId])
+  @@index([targetPersonId])
+  @@map("person_relationships")
 }
 
 // ─────────────────────────────────────────────

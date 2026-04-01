@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { MemberFamilyRelationshipsSection } from '@/pages/members/MemberFamilyRelationshipsSection'
 import { useAuthStore } from '@/stores/auth.store'
 
 const memberCategoryOptions = ['MEMBER', 'KIDS_MEMBER'] as const
@@ -554,6 +555,23 @@ export function MembersPage() {
           />
         </div>
       </div>
+
+      {selectedMember && (
+        <MemberFamilyRelationshipsSection
+          selectedMember={{
+            id: selectedMember.id,
+            personId: selectedMember.personId,
+            fullName: selectedMember.fullName,
+            preferredName: selectedMember.preferredName,
+            gender: selectedMember.gender,
+            branch: {
+              id: selectedMember.branch.id,
+              name: selectedMember.branch.name,
+            },
+          }}
+          onRelationshipsChanged={() => invalidateMemberQueries(selectedMember.id)}
+        />
+      )}
     </div>
   )
 }
