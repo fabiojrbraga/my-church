@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom'
 import { Church, LogOut, X } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { navigationSections, utilityNavigationItems } from '@/config/navigation'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { labels } from '@my-church/shared'
@@ -51,7 +50,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <div>
               <p className="font-display text-lg font-semibold tracking-tight text-white">MyChurch</p>
-              <p className="text-xs text-sidebar-foreground">ERP para gestão e operação</p>
+              <p className="text-xs text-sidebar-foreground">ERP para gestao e operacao</p>
             </div>
           </div>
 
@@ -60,7 +59,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             size="icon"
             className="text-sidebar-foreground hover:bg-white/10 hover:text-white lg:hidden"
             onClick={onClose}
-            aria-label="Fechar navegação"
+            aria-label="Fechar navegacao"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -80,13 +79,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Badge variant="outline" className="border-white/10 bg-white/5 text-sidebar-foreground">
-                Sessão ativa
-              </Badge>
-              <Badge variant="outline" className="border-white/10 bg-white/5 text-sidebar-foreground">
-                Navegação responsiva
-              </Badge>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3">
+              <p className="text-xs leading-5 text-sidebar-foreground/80">
+                Use o menu lateral para acessar os modulos disponiveis e acompanhar a operacao da igreja.
+              </p>
             </div>
           </div>
         </div>

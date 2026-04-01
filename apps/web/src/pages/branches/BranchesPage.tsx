@@ -15,7 +15,6 @@ import {
   RefreshCcw,
   Save,
   Search,
-  ShieldCheck,
   Trash2,
   Users,
 } from 'lucide-react'
@@ -26,7 +25,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
-import { useAuthStore } from '@/stores/auth.store'
 
 type BranchTypeKey = keyof typeof labels.tipoFilial
 type BranchFilterStatus = 'all' | 'active' | 'inactive'
@@ -181,7 +179,6 @@ function formatDate(value: string) {
 
 export function BranchesPage() {
   const queryClient = useQueryClient()
-  const user = useAuthStore((state) => state.user)
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null)
   const [filters, setFilters] = useState<{
     search: string
@@ -318,7 +315,9 @@ export function BranchesPage() {
   const totalUnits = branchOptions.length
   const activeUnits = branchOptions.filter((item) => item.isActive).length
   const headquartersCount = branchOptions.filter((item) => item.type === 'HEADQUARTERS').length
+  const branchCount = branchOptions.filter((item) => item.type === 'BRANCH').length
   const congregationsCount = branchOptions.filter((item) => item.type === 'CONGREGATION').length
+  const headquarters = branchOptions.find((item) => item.type === 'HEADQUARTERS') ?? null
   const availableParentOptions = branchOptions.filter((item) => item.id !== selectedBranch?.id)
   const isSaving = saveMutation.isPending
   const isRunningAction = statusMutation.isPending || deleteMutation.isPending
@@ -367,17 +366,19 @@ export function BranchesPage() {
         <CardContent className="grid gap-6 px-5 py-5 sm:px-6 sm:py-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] xl:px-8 xl:py-8">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="info">CRUD de filiais</Badge>
-              <Badge variant="success">Modulo ativo</Badge>
+              <Badge variant="secondary">Gestao de unidades</Badge>
+              <Badge variant="outline">
+                {activeUnits} ativa{activeUnits === 1 ? '' : 's'} de {totalUnits}
+              </Badge>
             </div>
 
             <div className="space-y-3">
               <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Administre matriz, filiais e congregacoes em um unico fluxo.
+                Organize a estrutura da igreja com uma visao clara das unidades.
               </h2>
               <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-                O modulo de Filiais agora possui cadastro completo, edicao, ativacao, exclusao protegida por vinculos e
-                visual responsivo para operacao administrativa.
+                Cadastre matriz, filiais e congregacoes, mantenha os dados atualizados e acompanhe a hierarquia em um
+                fluxo simples para a equipe administrativa.
               </p>
             </div>
 
@@ -401,9 +402,9 @@ export function BranchesPage() {
               </div>
 
               <div className="surface-subtle p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Congregacoes</p>
-                <p className="mt-3 text-2xl font-semibold text-foreground">{congregationsCount}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Unidades dependentes na hierarquia.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Filiais</p>
+                <p className="mt-3 text-2xl font-semibold text-foreground">{branchCount}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Unidades com operacao administrativa propria.</p>
               </div>
             </div>
           </div>
@@ -412,17 +413,17 @@ export function BranchesPage() {
             <div className="surface-subtle p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <ShieldCheck className="h-5 w-5" />
+                  <Landmark className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{user?.name ?? user?.email}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.role ? labels.papelUsuario[user.role as keyof typeof labels.papelUsuario] : 'Equipe'}
-                  </p>
+                  <p className="text-sm font-semibold text-foreground">Matriz atual</p>
+                  <p className="text-sm text-muted-foreground">{headquarters?.name ?? 'Nenhuma matriz cadastrada'}</p>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                Somente perfis autorizados conseguem administrar a estrutura de unidades pelo backend.
+                {headquarters
+                  ? 'Use a matriz como referencia principal da estrutura e vincule filiais e congregacoes conforme a organizacao local.'
+                  : 'Cadastre a matriz primeiro para centralizar a estrutura da igreja e organizar as demais unidades.'}
               </p>
             </div>
 
@@ -432,12 +433,28 @@ export function BranchesPage() {
                   <GitBranch className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Hierarquia pronta</p>
-                  <p className="text-sm text-muted-foreground">Pai, filhos e regras de exclusao controladas.</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {selectedBranch ? 'Unidade selecionada' : 'Proximo passo'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedBranch
+                      ? selectedBranch.name
+                      : totalUnits > 0
+                        ? 'Selecione uma unidade para editar ou revisar seus dados.'
+                        : 'Cadastre a primeira unidade para iniciar a estrutura.'}
+                  </p>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                A API impede ciclos na hierarquia, duplicidade de matriz e exclusao de unidades com vinculos.
+                {selectedBranch
+                  ? `${labels.tipoFilial[selectedBranch.type]} ${selectedBranch.isActive ? 'ativa' : 'inativa'}${
+                      selectedBranch.parent ? `, vinculada a ${selectedBranch.parent.name}.` : ', sem unidade pai definida.'
+                    }`
+                  : totalUnits > 0
+                    ? `Hoje voce possui ${branchCount} filiais e ${congregationsCount} congregacao${
+                        congregationsCount === 1 ? '' : 'es'
+                      } cadastrada${congregationsCount === 1 ? '' : 's'}.`
+                    : 'Comece pela matriz e depois vincule filiais e congregacoes conforme a estrutura da igreja.'}
               </p>
             </div>
           </div>
