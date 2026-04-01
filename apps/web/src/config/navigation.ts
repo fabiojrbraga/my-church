@@ -53,11 +53,11 @@ export const navigationSections: NavigationSection[] = [
         label: 'Membros',
         description: 'Cadastros, familias, historico ministerial e acompanhamento pastoral.',
         icon: Users,
-        status: 'planned',
+        status: 'active',
         highlights: [
-          'Cadastro completo de pessoas, membros e visitantes.',
-          'Estrutura pronta para familias, categorias e vinculos.',
-          'Fluxos desenhados para triagem simples e consulta rapida.',
+          'Cadastro completo de membros com dados pessoais e eclesiasticos.',
+          'Filtros por filial, categoria e status para consulta rapida.',
+          'Edicao, mudanca de status e exclusao protegida por vinculos.',
         ],
       },
       {

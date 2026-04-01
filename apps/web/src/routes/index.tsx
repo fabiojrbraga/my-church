@@ -5,10 +5,10 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { BranchesPage } from '@/pages/branches/BranchesPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import { MembersPage } from '@/pages/members/MembersPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 
 const moduleRoutes = [
-  'membros',
   'eventos',
   'ministerios',
   'escalas',
@@ -33,6 +33,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'membros', element: <MembersPage /> },
       { path: 'filiais', element: <BranchesPage /> },
       ...moduleRoutes.map((path) => ({ path, element: <ModulePlaceholderPage /> })),
     ],
