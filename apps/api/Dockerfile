@@ -23,6 +23,10 @@ COPY . .
 # Gera o Prisma Client
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 
+# Compila os packages internos
+RUN npm run build --workspace=packages/database
+RUN npm run build --workspace=packages/shared
+
 # Compila o backend
 RUN npm run build --workspace=apps/api
 
@@ -37,6 +41,10 @@ ENV NODE_ENV=production
 # Apenas dependências de produção
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/database/dist ./packages/database/dist
+COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
 COPY packages/database/prisma ./prisma
 COPY apps/api/entrypoint.sh ./entrypoint.sh
 
