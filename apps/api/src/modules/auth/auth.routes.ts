@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { prisma } from '@my-church/database'
+import { prisma, UserRole } from '@my-church/database'
 import { env } from '../../config/env.js'
 import { AppError, NotFoundError } from '../../shared/errors.js'
 
@@ -67,7 +67,7 @@ export async function authRoutes(app: FastifyInstance) {
       throw new AppError('Refresh token inválido ou expirado', 401)
     }
 
-    const payload = app.jwt.verify<{ sub: string; role: string; branchId: string }>(refreshToken)
+    const payload = app.jwt.verify<{ sub: string; role: UserRole; branchId: string }>(refreshToken)
     const newAccessToken = app.jwt.sign(
       { sub: payload.sub, role: payload.role, branchId: payload.branchId },
       { expiresIn: env.JWT_EXPIRES_IN },

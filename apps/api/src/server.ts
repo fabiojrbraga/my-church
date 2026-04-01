@@ -1,4 +1,4 @@
-import Fastify from 'fastify'
+import Fastify, { FastifyError } from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
@@ -44,7 +44,7 @@ async function bootstrap() {
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
 
   // Error handler global
-  app.setErrorHandler((error, _req, reply) => {
+  app.setErrorHandler((error: FastifyError, _req, reply) => {
     if (error.name === 'AppError' || (error as any).statusCode) {
       return reply
         .status((error as any).statusCode ?? 400)
