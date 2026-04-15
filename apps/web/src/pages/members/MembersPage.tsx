@@ -580,6 +580,7 @@ export function MembersPage() {
             },
           }}
           onRelationshipsChanged={() => invalidateMemberQueries(selectedMember.id)}
+          onNavigateToMember={handleSelectMember}
         />
       )}
     </div>
