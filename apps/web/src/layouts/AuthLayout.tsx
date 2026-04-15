@@ -22,8 +22,10 @@ const designHighlights = [
 ]
 
 export function AuthLayout() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)()
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
+
+  if (accessToken && user) return <Navigate to="/dashboard" replace />
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-sidebar text-white">

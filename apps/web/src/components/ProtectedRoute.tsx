@@ -6,7 +6,10 @@ interface Props {
 }
 
 export function ProtectedRoute({ children }: Props) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)()
-  if (!isAuthenticated) return <Navigate to="/entrar" replace />
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
+
+  if (!accessToken || !user) return <Navigate to="/entrar" replace />
+
   return <>{children}</>
 }
