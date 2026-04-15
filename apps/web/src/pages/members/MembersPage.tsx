@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -370,10 +370,17 @@ export function MembersPage() {
   const currentBranchId = memberOptionsQuery.data?.currentBranchId ?? authUser?.branchId ?? ''
   const selectedMember =
     selectedMemberQuery.data ?? members.find((member) => member.id === selectedMemberId) ?? null
-  const createDefaults: MemberFormValues = {
-    ...defaultValues,
-    branchId: currentBranchId || accessibleBranches[0]?.id || '',
-  }
+  const createDefaults = useMemo<MemberFormValues>(
+    () => ({
+      ...defaultValues,
+      branchId: currentBranchId || accessibleBranches[0]?.id || '',
+    }),
+    [accessibleBranches, currentBranchId],
+  )
+  const selectedMemberFormValues = useMemo(
+    () => (selectedMember ? mapMemberToFormValues(selectedMember) : null),
+    [selectedMember],
+  )
 
   useEffect(() => {
     if (!canManageAllBranches && currentBranchId && filters.branchId !== currentBranchId) {
@@ -388,10 +395,13 @@ export function MembersPage() {
   }, [setValue, watchedCategory])
 
   useEffect(() => {
-    if (selectedMember) {
-      reset(mapMemberToFormValues(selectedMember))
-      return
-    }
+    if (!selectedMemberFormValues) return
+
+    reset(selectedMemberFormValues)
+  }, [reset, selectedMemberFormValues])
+
+  useEffect(() => {
+    if (selectedMember) return
 
     if (!isDirty && createDefaults.branchId && watchedBranchId !== createDefaults.branchId) {
       reset(createDefaults)
