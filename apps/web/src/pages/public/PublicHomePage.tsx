@@ -32,6 +32,7 @@ const menuItems = [
   { href: '#sobre', label: 'Sobre' },
   { href: '#programacao', label: 'Programacao' },
   { href: '#ministerios', label: 'Ministerios' },
+  { href: '/pix', label: 'Pix' },
   { href: '#links-uteis', label: 'Links uteis' },
   { href: '#contato', label: 'Contato' },
 ]
@@ -92,10 +93,10 @@ const ministryItems: PublicItem[] = [
 
 const usefulLinks: UsefulLink[] = [
   {
-    href: '#programacao',
-    title: 'Agenda publica',
-    description: 'Veja os proximos cultos, encontros e eventos abertos para visitantes.',
-    icon: CalendarDays,
+    href: '/pix',
+    title: 'Pix identificado',
+    description: 'Acesse codigos oficiais, copie para o banco ou baixe o banner com QR code.',
+    icon: HandHeart,
   },
   {
     href: '#contato',

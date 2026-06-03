@@ -9,6 +9,7 @@ import authPlugin from './plugins/auth.js'
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { branchRoutes } from './modules/branches/branches.routes.js'
 import { memberRoutes } from './modules/members/members.routes.js'
+import { pixAddressRoutes } from './modules/pix/pix-addresses.routes.js'
 
 const app = Fastify({
   logger: {
@@ -43,6 +44,7 @@ async function bootstrap() {
   await app.register(authRoutes, { prefix: '/api/v1/auth' })
   await app.register(branchRoutes, { prefix: '/api/v1/branches' })
   await app.register(memberRoutes, { prefix: '/api/v1/members' })
+  await app.register(pixAddressRoutes, { prefix: '/api/v1/pix-addresses' })
 
   // Healthcheck
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))

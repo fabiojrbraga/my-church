@@ -7,6 +7,8 @@ import { BranchesPage } from '@/pages/branches/BranchesPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { MembersPage } from '@/pages/members/MembersPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
+import { PixAddressesPage } from '@/pages/pix/PixAddressesPage'
+import { PublicPixPage } from '@/pages/pix/PublicPixPage'
 import { PublicHomePage } from '@/pages/public/PublicHomePage'
 
 const moduleRoutes = [
@@ -23,6 +25,7 @@ export const router = createBrowserRouter([
     path: '/',
     children: [
       { index: true, element: <PublicHomePage /> },
+      { path: 'pix', element: <PublicPixPage /> },
       {
         path: 'entrar',
         element: <AuthLayout />,
@@ -38,6 +41,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <DashboardPage /> },
           { path: 'membros', element: <MembersPage /> },
           { path: 'filiais', element: <BranchesPage /> },
+          { path: 'enderecos-pix', element: <PixAddressesPage /> },
           ...moduleRoutes.map((path) => ({ path, element: <ModulePlaceholderPage /> })),
         ],
       },

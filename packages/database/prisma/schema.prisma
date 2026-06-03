@@ -196,6 +196,7 @@ model Branch {
   transactions    Transaction[]
   contracts       RecurringContract[]
   boardMembers    BoardMember[]
+  pixAddresses    PixAddress[]
 
   @@map("branches")
 }
@@ -501,6 +502,24 @@ model PaymentOrder {
   createdAt      DateTime      @default(now())
 
   @@map("payment_orders")
+}
+
+model PixAddress {
+  id              String   @id @default(cuid())
+  branchId        String
+  branch          Branch   @relation(fields: [branchId], references: [id])
+  identifier      String   @unique
+  purpose         String
+  copyPasteCode   String   @db.Text
+  expiresAt       DateTime?
+  logoUrl         String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([branchId])
+  @@index([isActive, expiresAt])
+  @@map("pix_addresses")
 }
 
 // ─────────────────────────────────────────────

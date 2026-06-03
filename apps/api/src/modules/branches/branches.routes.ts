@@ -17,6 +17,7 @@ const relationCountKeys = [
   'transactions',
   'contracts',
   'boardMembers',
+  'pixAddresses',
 ] as const
 
 const emptyToUndefined = (value: unknown) => {
@@ -99,6 +100,7 @@ const branchSelect = {
       transactions: true,
       contracts: true,
       boardMembers: true,
+      pixAddresses: true,
     },
   },
 } as const

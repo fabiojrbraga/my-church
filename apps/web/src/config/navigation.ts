@@ -6,6 +6,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   Music2,
+  QrCode,
   Settings,
   Users,
   Wallet,
@@ -121,6 +122,19 @@ export const navigationSections: NavigationSection[] = [
         ],
       },
       {
+        to: '/enderecos-pix',
+        label: 'Pix publico',
+        description:
+          'Cadastro de codigos copia e cola identificados para publicacao e banners com QR code.',
+        icon: QrCode,
+        status: 'active',
+        highlights: [
+          'Identificadores publicos sem espacos ou caracteres especiais.',
+          'Expiracao automatica para ocultar codigos vencidos da pagina publica.',
+          'Logo opcional para banners impressos em PDF ou JPG.',
+        ],
+      },
+      {
         to: '/escalas-musica',
         label: 'Louvor',
         description: 'Planejamento especifico de repertorio, funcoes e rotina do ministerio.',
@@ -157,7 +171,7 @@ export const navigationItems = [
 ]
 
 export const quickActionItems = navigationItems.filter((item) =>
-  ['/membros', '/eventos', '/escalas', '/tesouraria'].includes(item.to),
+  ['/membros', '/eventos', '/enderecos-pix', '/tesouraria'].includes(item.to),
 )
 
 export function findNavigationItem(pathname: string) {
