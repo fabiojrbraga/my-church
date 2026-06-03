@@ -12,8 +12,8 @@ import { Label } from '@/components/ui/label'
 import { AlertCircle, LockKeyhole } from 'lucide-react'
 
 const schema = z.object({
-  email: z.string().email('E-mail inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  email: z.string().email('E-mail invalido'),
+  password: z.string().min(6, 'Minimo 6 caracteres'),
 })
 type FormData = z.infer<typeof schema>
 
@@ -46,10 +46,10 @@ export function LoginPage() {
 
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
-            Entre para continuar a operação.
+            Entre para continuar a operacao.
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Faça login com a conta administrativa da sua igreja para acessar os módulos e o painel principal.
+            Faca login com a conta administrativa da sua igreja para acessar os modulos e o painel principal.
           </p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export function LoginPage() {
             id="password"
             {...register('password')}
             type="password"
-            placeholder="••••••••"
+            placeholder="********"
             error={!!errors.password}
             autoComplete="current-password"
           />
@@ -90,7 +90,7 @@ export function LoginPage() {
         </div>
 
         {errors.root && (
-          <div className="flex items-center gap-2.5 rounded-2xl border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive">
+          <div className="flex items-center gap-2.5 rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {errors.root.message}
           </div>
@@ -106,10 +106,9 @@ export function LoginPage() {
           <LockKeyhole className="h-4 w-4" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-foreground">Sessão contínua e navegação simplificada</p>
+          <p className="text-sm font-semibold text-foreground">Sessao administrativa protegida</p>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            A experiência foi ajustada para mobile e desktop, com navegação consistente, componentes reutilizáveis e
-            um app shell mais fluido para as próximas telas.
+            Acesso reservado para equipes autorizadas, com navegacao interna para a rotina operacional da igreja.
           </p>
         </div>
       </div>

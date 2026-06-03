@@ -1,22 +1,23 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Link, Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Church, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 
-const designHighlights = [
+const adminHighlights = [
   {
-    title: 'Operação clara',
+    title: 'Operacao clara',
     description: 'Fluxos pensados para reduzir atrito em cadastros, eventos e tesouraria.',
     icon: Workflow,
   },
   {
-    title: 'Segurança e contexto',
-    description: 'Autenticação, escopo por unidade e expansão preparada para permissões.',
+    title: 'Seguranca e contexto',
+    description: 'Autenticacao, escopo por unidade e expansao preparada para permissoes.',
     icon: ShieldCheck,
   },
   {
-    title: 'Design escalável',
-    description: 'Tokens, componentes e layout responsivo para crescer sem perder consistência.',
+    title: 'Rotina escalavel',
+    description: 'Componentes e layout responsivo para crescer sem perder consistencia.',
     icon: Sparkles,
   },
 ]
@@ -45,21 +46,21 @@ export function AuthLayout() {
 
           <div className="max-w-xl space-y-8">
             <Badge variant="outline" className="border-white/10 bg-white/5 text-white/80">
-              Design System Web
+              Acesso administrativo
             </Badge>
 
             <div className="space-y-4">
               <h1 className="font-display text-4xl font-semibold leading-tight text-balance text-white xl:text-5xl">
-                Um app shell moderno para uma operação administrativa simples e intuitiva.
+                Area interna para a operacao administrativa da igreja.
               </h1>
-              <p className="max-w-lg text-base leading-7 text-white/68">
-                A base visual da aplicação foi reorganizada para telas grandes e pequenas, com navegação clara,
-                superfícies consistentes e componentes preparados para crescer junto com os módulos do ERP.
+              <p className="max-w-lg text-base leading-7 text-white/70">
+                Use sua conta autorizada para acessar cadastros, filiais, membros, eventos, escalas, tesouraria e os
+                demais modulos internos do sistema.
               </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-              {designHighlights.map(({ title, description, icon: Icon }) => (
+              {adminHighlights.map(({ title, description, icon: Icon }) => (
                 <div key={title} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
                     <Icon className="h-4 w-4 text-white" />
@@ -72,16 +73,15 @@ export function AuthLayout() {
           </div>
 
           <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-            <p className="text-sm font-medium text-white/70">Base de design aplicada</p>
+            <p className="text-sm font-medium text-white/70">Separacao entre publico e administrativo</p>
             <p className="mt-2 text-lg font-light leading-8 text-white">
-              “Tokens semânticos, navegação responsiva e componentes reutilizáveis para reduzir inconsistência e
-              acelerar a evolução das próximas telas.”
+              A pagina inicial publica apresenta a instituicao. Esta area permanece reservada para a equipe autorizada.
             </p>
           </div>
         </section>
 
         <section className="flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
-          <div className="w-full max-w-[28rem] animate-scale-in rounded-[2rem] border border-white/10 bg-background/94 p-5 text-foreground shadow-soft backdrop-blur-xl sm:p-7 lg:p-8">
+          <div className="w-full max-w-[28rem] animate-scale-in rounded-[2rem] border border-white/10 bg-background/95 p-5 text-foreground shadow-soft backdrop-blur-xl sm:p-7 lg:p-8">
             <div className="mb-8 flex items-center gap-3 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-white">
                 <Church className="h-4 w-4" />
@@ -93,6 +93,10 @@ export function AuthLayout() {
             </div>
 
             <Outlet />
+
+            <Button asChild variant="ghost" className="mt-6 w-full">
+              <Link to="/">Voltar para a pagina publica</Link>
+            </Button>
           </div>
         </section>
       </div>

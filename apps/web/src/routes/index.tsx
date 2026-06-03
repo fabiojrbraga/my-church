@@ -7,6 +7,7 @@ import { BranchesPage } from '@/pages/branches/BranchesPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { MembersPage } from '@/pages/members/MembersPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
+import { PublicHomePage } from '@/pages/public/PublicHomePage'
 
 const moduleRoutes = [
   'eventos',
@@ -19,24 +20,28 @@ const moduleRoutes = [
 
 export const router = createBrowserRouter([
   {
-    path: '/entrar',
-    element: <AuthLayout />,
-    children: [{ index: true, element: <LoginPage /> }],
-  },
-  {
     path: '/',
-    element: (
-      <ProtectedRoute>
-        <AppLayout />
-      </ProtectedRoute>
-    ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <DashboardPage /> },
-      { path: 'membros', element: <MembersPage /> },
-      { path: 'filiais', element: <BranchesPage /> },
-      ...moduleRoutes.map((path) => ({ path, element: <ModulePlaceholderPage /> })),
+      { index: true, element: <PublicHomePage /> },
+      {
+        path: 'entrar',
+        element: <AuthLayout />,
+        children: [{ index: true, element: <LoginPage /> }],
+      },
+      {
+        element: (
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'membros', element: <MembersPage /> },
+          { path: 'filiais', element: <BranchesPage /> },
+          ...moduleRoutes.map((path) => ({ path, element: <ModulePlaceholderPage /> })),
+        ],
+      },
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
-  { path: '*', element: <Navigate to="/" replace /> },
 ])
