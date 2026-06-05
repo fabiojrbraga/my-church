@@ -197,8 +197,7 @@ export function PublicHomePage() {
               >
                 <Construction className="mt-0.5 h-5 w-5 shrink-0" />
                 <p className="text-sm font-medium leading-6">
-                  Esta página está em construção. Em breve teremos mais informações públicas sobre a
-                  instituição.
+                  Esta página está em construção!
                 </p>
               </div>
             </div>
