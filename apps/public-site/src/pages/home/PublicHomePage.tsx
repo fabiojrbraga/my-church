@@ -8,7 +8,6 @@ import {
   Instagram,
   Mail,
   MapPin,
-  MessageCircle,
   Phone,
   Youtube,
 } from 'lucide-react'
@@ -35,6 +34,14 @@ const serviceTimes = [
   },
 ]
 
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M12.04 2a9.86 9.86 0 0 0-9.9 9.86c0 1.74.46 3.44 1.34 4.94L2 22l5.34-1.4a9.9 9.9 0 0 0 4.7 1.19h.01A9.86 9.86 0 0 0 21.9 11.9 9.86 9.86 0 0 0 12.04 2Zm5.82 14.1c-.25.7-1.46 1.34-2.02 1.39-.52.05-1.18.07-1.9-.12-.44-.12-1-.32-1.72-.63-3.02-1.3-4.99-4.34-5.14-4.54-.15-.2-1.23-1.64-1.23-3.12s.78-2.21 1.06-2.51c.28-.3.6-.38.8-.38h.58c.18.01.43-.07.67.52.25.6.86 2.1.94 2.25.08.15.13.33.03.53-.1.2-.15.33-.3.5-.15.18-.31.39-.45.52-.15.15-.31.31-.13.6.18.3.78 1.29 1.68 2.08 1.16.99 2.13 1.3 2.43 1.45.3.15.48.13.66-.08.18-.2.76-.88.96-1.18.2-.3.4-.25.68-.15.28.1 1.78.84 2.08.99.3.15.5.23.58.35.08.13.08.75-.17 1.45Z" />
+    </svg>
+  )
+}
+
 function getWhatsappUrl(value: string | null) {
   if (!value) return null
 
@@ -56,14 +63,18 @@ export function PublicHomePage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
   const heroImageUrl = branding.heroImageUrl ?? '/images/public-home-hero.png'
+  const footerLogo = branding.logoDarkUrl ?? branding.logoUrl ?? branding.iconUrl
   const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
+  const footerLogoForegroundColor = getReadableTextColor(branding.logoDarkBackgroundColor)
   const whatsappUrl = getWhatsappUrl(branding.contact.publicWhatsapp)
   const addressLabel = [branding.contact.addressLine, branding.contact.city, branding.contact.state]
     .filter(Boolean)
     .join(' - ')
-  const footerItems = [
+  const footerInstitutionItems = [
     { label: 'Nome', value: branding.legalName ?? branding.displayName, icon: Church },
     { label: 'CNPJ', value: branding.document, icon: FileText },
+  ]
+  const footerContactItems = [
     { label: 'Endereço', value: addressLabel, icon: MapPin },
     { label: 'E-mail', value: branding.contact.publicEmail, icon: Mail },
     { label: 'Telefone', value: branding.contact.publicPhone, icon: Phone },
@@ -82,7 +93,8 @@ export function PublicHomePage() {
     {
       label: 'WhatsApp',
       href: whatsappUrl,
-      icon: MessageCircle,
+      icon: WhatsAppIcon,
+      iconClassName: 'text-[#25D366]',
     },
   ].filter((item) => item.href)
 
@@ -240,7 +252,7 @@ export function PublicHomePage() {
                 </h2>
                 <div className="mt-5 grid gap-3">
                   {socialLinks.length > 0 ? (
-                    socialLinks.map(({ href, icon: Icon, label }) => (
+                    socialLinks.map(({ href, icon: Icon, iconClassName, label }) => (
                       <a
                         key={label}
                         href={href ?? '#'}
@@ -249,7 +261,7 @@ export function PublicHomePage() {
                         className="flex items-center justify-between gap-3 rounded-[8px] border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                       >
                         <span className="inline-flex items-center gap-3">
-                          <Icon className="h-4 w-4" />
+                          <Icon className={`h-4 w-4 ${iconClassName ?? ''}`} />
                           {label}
                         </span>
                         <ArrowRight className="h-4 w-4" />
@@ -268,27 +280,61 @@ export function PublicHomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+      <footer className="bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.15fr)]">
           <div>
-            <p className="font-display text-lg font-semibold tracking-normal text-slate-950">
-              {branding.shortName}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Dados públicos cadastrados para identificação e contato da instituição.
-            </p>
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[8px] border border-white/10"
+                style={{
+                  backgroundColor: branding.logoDarkBackgroundColor,
+                  color: footerLogoForegroundColor,
+                }}
+              >
+                {footerLogo ? (
+                  <img src={footerLogo} alt="" className="h-8 w-8 object-contain" />
+                ) : (
+                  <Church className="h-6 w-6" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="font-display text-xl font-semibold tracking-normal text-white">
+                  {branding.shortName}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-white/55">
+                  Informações oficiais da instituição.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {footerItems.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-[8px] border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <span>{label}</span>
-                </div>
-                <p className="mt-2 break-words text-sm font-semibold leading-6 text-slate-950">
-                  {value || 'Não informado'}
-                </p>
+          <div className="grid gap-8 md:grid-cols-2">
+            {[
+              { title: 'Instituição', items: footerInstitutionItems },
+              { title: 'Contato', items: footerContactItems },
+            ].map((group) => (
+              <div key={group.title}>
+                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+                  {group.title}
+                </h2>
+                <dl className="mt-4 space-y-4">
+                  {group.items.map(({ icon: Icon, label, value }) => (
+                    <div
+                      key={label}
+                      className="flex gap-3 border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+                    >
+                      <Icon className="mt-1 h-4 w-4 shrink-0 text-white/45" />
+                      <div className="min-w-0">
+                        <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
+                          {label}
+                        </dt>
+                        <dd className="mt-1 break-words text-sm font-medium leading-6 text-white">
+                          {value || 'Não informado'}
+                        </dd>
+                      </div>
+                    </div>
+                  ))}
+                </dl>
               </div>
             ))}
           </div>
