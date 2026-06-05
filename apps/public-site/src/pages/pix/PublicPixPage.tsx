@@ -139,11 +139,67 @@ function drawCenteredText(
   return y + lines.length * lineHeight
 }
 
+function drawLogoFallback(
+  ctx: CanvasRenderingContext2D,
+  label: string,
+  x: number,
+  y: number,
+  size: number,
+  backgroundColor: string,
+  foregroundColor: string,
+) {
+  ctx.fillStyle = backgroundColor
+  ctx.beginPath()
+  ctx.roundRect(x, y, size, size, 24)
+  ctx.fill()
+
+  const words = label.trim().split(/\s+/).filter(Boolean)
+  const fallbackLines = words.length > 1 ? words.slice(0, 2) : [words[0] ?? 'LOGO']
+  const fontSize = fallbackLines.some((line) => line.length > 6) ? 26 : 34
+
+  ctx.fillStyle = foregroundColor
+  ctx.font = `700 ${fontSize}px Arial`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+
+  const centerX = x + size / 2
+  const centerY = y + size / 2
+  const lineHeight = fontSize + 6
+  const startY = centerY - ((fallbackLines.length - 1) * lineHeight) / 2
+
+  fallbackLines.forEach((line, index) => {
+    ctx.fillText(line, centerX, startY + index * lineHeight, size - 24)
+  })
+
+  ctx.textBaseline = 'alphabetic'
+}
+
+function drawContainedImage(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  size: number,
+  padding: number,
+) {
+  const maxSize = size - padding * 2
+  const naturalWidth = image.naturalWidth || image.width || maxSize
+  const naturalHeight = image.naturalHeight || image.height || maxSize
+  const scale = Math.min(maxSize / naturalWidth, maxSize / naturalHeight)
+  const width = naturalWidth * scale
+  const height = naturalHeight * scale
+  const offsetX = x + (size - width) / 2
+  const offsetY = y + (size - height) / 2
+
+  ctx.drawImage(image, offsetX, offsetY, width, height)
+}
+
 async function createBannerCanvas(
   item: PixAddressPublicRecord,
   qrDataUrl: string,
   fallbackLogoUrl?: string | null,
   logoBackgroundColor = '#ffffff',
+  logoFallbackLabel = 'LOGO',
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = 1080
@@ -163,37 +219,44 @@ async function createBannerCanvas(
 
   const bannerLogoUrl = item.effectiveLogoUrl ?? fallbackLogoUrl
   const logoForegroundColor = getReadableTextColor(logoBackgroundColor)
+  const logoX = 72
+  const logoY = 72
+  const logoSize = 132
 
   if (bannerLogoUrl) {
     try {
       const logo = await loadImage(bannerLogoUrl)
       ctx.save()
-      ctx.beginPath()
-      ctx.roundRect(72, 72, 132, 132, 24)
-      ctx.clip()
       ctx.fillStyle = logoBackgroundColor
-      ctx.fillRect(72, 72, 132, 132)
-      ctx.drawImage(logo, 72, 72, 132, 132)
+      ctx.beginPath()
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
+      ctx.clip()
+      drawContainedImage(ctx, logo, logoX, logoY, logoSize, 18)
       ctx.restore()
     } catch {
-      ctx.fillStyle = logoBackgroundColor
-      ctx.beginPath()
-      ctx.roundRect(72, 72, 132, 132, 24)
-      ctx.fill()
-      ctx.fillStyle = logoForegroundColor
-      ctx.font = '700 54px Arial'
-      ctx.textAlign = 'center'
-      ctx.fillText('PIX', 138, 150)
+      drawLogoFallback(
+        ctx,
+        logoFallbackLabel,
+        logoX,
+        logoY,
+        logoSize,
+        logoBackgroundColor,
+        logoForegroundColor,
+      )
     }
   } else {
-    ctx.fillStyle = logoBackgroundColor
-    ctx.beginPath()
-    ctx.roundRect(72, 72, 132, 132, 24)
-    ctx.fill()
-    ctx.fillStyle = logoForegroundColor
-    ctx.font = '700 54px Arial'
-    ctx.textAlign = 'center'
-    ctx.fillText('PIX', 138, 150)
+    drawLogoFallback(
+      ctx,
+      logoFallbackLabel,
+      logoX,
+      logoY,
+      logoSize,
+      logoBackgroundColor,
+      logoForegroundColor,
+    )
   }
 
   ctx.textAlign = 'left'
@@ -260,8 +323,15 @@ async function downloadBanner(
   kind: DownloadKind,
   fallbackLogoUrl?: string | null,
   logoBackgroundColor?: string,
+  logoFallbackLabel?: string,
 ) {
-  const canvas = await createBannerCanvas(item, qrDataUrl, fallbackLogoUrl, logoBackgroundColor)
+  const canvas = await createBannerCanvas(
+    item,
+    qrDataUrl,
+    fallbackLogoUrl,
+    logoBackgroundColor,
+    logoFallbackLabel,
+  )
   const filename = `pix-${item.identifier}.${kind}`
 
   if (kind === 'jpg') {
@@ -282,6 +352,7 @@ async function downloadBanner(
 export function PublicPixPage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
+  const bannerLogo = branding.logoDarkUrl ?? branding.logoUrl ?? branding.iconUrl
   const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
@@ -351,7 +422,14 @@ export function PublicPixPage() {
     setDownloading(kind)
 
     try {
-      await downloadBanner(selectedItem, qrDataUrl, kind, logo, branding.logoBackgroundColor)
+      await downloadBanner(
+        selectedItem,
+        qrDataUrl,
+        kind,
+        bannerLogo,
+        branding.logoDarkBackgroundColor,
+        branding.shortName,
+      )
     } finally {
       setDownloading(null)
     }
