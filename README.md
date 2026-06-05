@@ -104,6 +104,14 @@ O Easypanel detecta o `Dockerfile` automaticamente a partir do repositório.
 - Build Context: `.`
 - Porta: `80`
 - Domínio: `www.seudominio.com.br`
+- Variáveis de ambiente:
+  ```
+  API_UPSTREAM=https://api.seudominio.com.br
+  ```
+- Variáveis de build:
+  ```
+  VITE_ADMIN_LOGIN_URL=https://app.seudominio.com.br/entrar
+  ```
 
 #### 5. Admin Web (`apps/web`)
 - Tipo: **App → GitHub**
@@ -112,6 +120,14 @@ O Easypanel detecta o `Dockerfile` automaticamente a partir do repositório.
 - Build Context: `.`
 - Porta: `80`
 - Domínio: `app.seudominio.com.br`
+- Variáveis de ambiente:
+  ```
+  API_UPSTREAM=https://api.seudominio.com.br
+  ```
+- Variáveis de build:
+  ```
+  VITE_PUBLIC_SITE_URL=https://www.seudominio.com.br
+  ```
 
 ### Schema em produção
 

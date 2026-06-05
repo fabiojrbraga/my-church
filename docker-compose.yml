@@ -51,6 +51,8 @@ services:
     build:
       context: .
       dockerfile: apps/public-site/Dockerfile
+      args:
+        VITE_ADMIN_LOGIN_URL: http://localhost:8080/entrar
     container_name: mychurch-public-site
     restart: unless-stopped
     environment:
@@ -67,6 +69,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        VITE_PUBLIC_SITE_URL: http://localhost
     container_name: mychurch-web
     restart: unless-stopped
     environment:

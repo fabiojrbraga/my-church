@@ -19,6 +19,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG VITE_PUBLIC_SITE_URL=http://localhost:5174
+ENV VITE_PUBLIC_SITE_URL=$VITE_PUBLIC_SITE_URL
+
 # Compila o package interno
 RUN npm run build --workspace=packages/shared
 
@@ -29,7 +32,7 @@ RUN npm run build --workspace=apps/web
 # ──────────────────────────────────────────────
 FROM nginx:alpine AS runner
 
-ENV API_UPSTREAM=http://api:3333
+ENV API_UPSTREAM=http://general_my-church-api:3333
 
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 COPY nginx/spa.conf.template /etc/nginx/templates/default.conf.template
