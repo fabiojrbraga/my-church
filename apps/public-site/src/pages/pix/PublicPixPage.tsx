@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import QRCode from 'qrcode'
@@ -52,6 +52,10 @@ function formatExpiration(value: string | null) {
 
 function getOfficialChannelsMessage(shortName: string) {
   return `Use somente os canais oficiais da ${shortName} para confirmar informações.`
+}
+
+function isMobileViewport() {
+  return window.matchMedia('(max-width: 1023px)').matches
 }
 
 function downloadUrl(url: string, filename: string) {
@@ -472,6 +476,9 @@ export function PublicPixPage() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState<DownloadKind | null>(null)
+  const detailPanelRef = useRef<HTMLElement | null>(null)
+  const shouldScrollInitialQueryRef = useRef(searchParams.has('chave'))
+  const hasScrolledInitialQueryRef = useRef(false)
 
   const pixQuery = useQuery({
     queryKey: ['public-pix-addresses'],
@@ -500,11 +507,33 @@ export function PublicPixPage() {
     items[0] ??
     null
 
+  function scrollToDetailsOnMobile(behavior: ScrollBehavior = 'smooth') {
+    if (!isMobileViewport()) return
+
+    window.setTimeout(() => {
+      detailPanelRef.current?.scrollIntoView({ behavior, block: 'start' })
+    }, 80)
+  }
+
   useEffect(() => {
     if (!selectedItem) return
 
     setSearchParams({ chave: selectedItem.identifier }, { replace: true })
   }, [selectedItem, setSearchParams])
+
+  useEffect(() => {
+    if (
+      !shouldScrollInitialQueryRef.current ||
+      hasScrolledInitialQueryRef.current ||
+      !selectedIdentifier ||
+      !selectedItem
+    ) {
+      return
+    }
+
+    hasScrolledInitialQueryRef.current = true
+    scrollToDetailsOnMobile('auto')
+  }, [selectedIdentifier, selectedItem])
 
   useEffect(() => {
     let isMounted = true
@@ -527,6 +556,11 @@ export function PublicPixPage() {
     await navigator.clipboard.writeText(selectedItem.copyPasteCode)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1800)
+  }
+
+  function handleSelectPix(identifier: string) {
+    setSearchParams({ chave: identifier })
+    scrollToDetailsOnMobile()
   }
 
   async function handleDownload(kind: DownloadKind) {
@@ -639,7 +673,7 @@ export function PublicPixPage() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setSearchParams({ chave: item.identifier })}
+                onClick={() => handleSelectPix(item.identifier)}
                 className={`w-full rounded-[8px] border p-4 text-left transition-all duration-200 ${
                   selectedItem?.id === item.id
                     ? 'border-primary/40 bg-primary/5 shadow-panel'
@@ -664,7 +698,7 @@ export function PublicPixPage() {
           </div>
         </section>
 
-        <section className="lg:sticky lg:top-24 lg:self-start">
+        <section ref={detailPanelRef} className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start">
           {!selectedItem && (
             <div className="rounded-[8px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-950/5">
               <QrCode className="h-8 w-8 text-primary" />
