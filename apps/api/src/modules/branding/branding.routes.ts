@@ -14,6 +14,9 @@ const defaultBranding = {
   accentColor: '#f97316',
   sidebarColor: '#0f172a',
   backgroundColor: '#f8fafc',
+  logoBackgroundColor: '#0f172a',
+  logoDarkBackgroundColor: '#1e293b',
+  iconBackgroundColor: '#2563eb',
 }
 
 const emptyToNull = (value: unknown) => {
@@ -71,6 +74,9 @@ const brandingBodySchema = z.object({
   iconUrl: optionalAssetUrlSchema,
   faviconUrl: optionalAssetUrlSchema,
   heroImageUrl: optionalAssetUrlSchema,
+  logoBackgroundColor: hexColorSchema,
+  logoDarkBackgroundColor: hexColorSchema,
+  iconBackgroundColor: hexColorSchema,
   theme: z.object({
     primaryColor: hexColorSchema,
     accentColor: hexColorSchema,
@@ -122,6 +128,9 @@ function serializeBranding(
     iconUrl: settings.iconUrl,
     faviconUrl: settings.faviconUrl,
     heroImageUrl: settings.heroImageUrl,
+    logoBackgroundColor: settings.logoBackgroundColor,
+    logoDarkBackgroundColor: settings.logoDarkBackgroundColor,
+    iconBackgroundColor: settings.iconBackgroundColor,
     theme: {
       primaryColor: settings.primaryColor,
       accentColor: settings.accentColor,
@@ -187,6 +196,9 @@ export async function brandingRoutes(app: FastifyInstance) {
         iconUrl: payload.iconUrl ?? null,
         faviconUrl: payload.faviconUrl ?? null,
         heroImageUrl: payload.heroImageUrl ?? null,
+        logoBackgroundColor: payload.logoBackgroundColor,
+        logoDarkBackgroundColor: payload.logoDarkBackgroundColor,
+        iconBackgroundColor: payload.iconBackgroundColor,
         primaryColor: payload.theme.primaryColor,
         accentColor: payload.theme.accentColor,
         sidebarColor: payload.theme.sidebarColor,

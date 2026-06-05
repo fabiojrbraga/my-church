@@ -17,7 +17,12 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { api } from '@/lib/api'
-import { applyBranding, defaultBranding, type BrandingSettings } from '@/lib/branding'
+import {
+  applyBranding,
+  defaultBranding,
+  getReadableTextColor,
+  type BrandingSettings,
+} from '@/lib/branding'
 import { useAuthStore } from '@/stores/auth.store'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -51,6 +56,9 @@ const brandingFormSchema = z.object({
   iconUrl: optionalAssetUrl,
   faviconUrl: optionalAssetUrl,
   heroImageUrl: optionalAssetUrl,
+  logoBackgroundColor: z.string().regex(hexColorPattern, 'Use #RRGGBB'),
+  logoDarkBackgroundColor: z.string().regex(hexColorPattern, 'Use #RRGGBB'),
+  iconBackgroundColor: z.string().regex(hexColorPattern, 'Use #RRGGBB'),
   primaryColor: z.string().regex(hexColorPattern, 'Use #RRGGBB'),
   accentColor: z.string().regex(hexColorPattern, 'Use #RRGGBB'),
   sidebarColor: z.string().regex(hexColorPattern, 'Use #RRGGBB'),
@@ -101,6 +109,9 @@ function mapBrandingToForm(branding: BrandingSettings): BrandingFormValues {
     iconUrl: branding.iconUrl ?? '',
     faviconUrl: branding.faviconUrl ?? '',
     heroImageUrl: branding.heroImageUrl ?? '',
+    logoBackgroundColor: branding.logoBackgroundColor,
+    logoDarkBackgroundColor: branding.logoDarkBackgroundColor,
+    iconBackgroundColor: branding.iconBackgroundColor,
     primaryColor: branding.theme.primaryColor,
     accentColor: branding.theme.accentColor,
     sidebarColor: branding.theme.sidebarColor,
@@ -132,6 +143,9 @@ function buildPayload(values: BrandingFormValues) {
     iconUrl: optionalValue(values.iconUrl),
     faviconUrl: optionalValue(values.faviconUrl),
     heroImageUrl: optionalValue(values.heroImageUrl),
+    logoBackgroundColor: values.logoBackgroundColor.trim().toLowerCase(),
+    logoDarkBackgroundColor: values.logoDarkBackgroundColor.trim().toLowerCase(),
+    iconBackgroundColor: values.iconBackgroundColor.trim().toLowerCase(),
     theme: {
       primaryColor: values.primaryColor.trim().toLowerCase(),
       accentColor: values.accentColor.trim().toLowerCase(),
@@ -259,6 +273,8 @@ export function BrandingSettingsPage() {
 
   const values = watch()
   const logoPreview = values.logoUrl || values.iconUrl
+  const logoPreviewForeground = getReadableTextColor(values.logoBackgroundColor)
+  const iconPreviewForeground = getReadableTextColor(values.iconBackgroundColor)
   const isSaving = saveMutation.isPending
 
   return (
@@ -308,7 +324,7 @@ export function BrandingSettingsPage() {
               <div className="flex items-center gap-3">
                 <div
                   className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-white"
-                  style={{ background: values.primaryColor }}
+                  style={{ background: values.logoBackgroundColor, color: logoPreviewForeground }}
                 >
                   {logoPreview ? (
                     <img src={logoPreview} alt="" className="h-10 w-10 object-contain" />
@@ -324,7 +340,7 @@ export function BrandingSettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <Palette className="h-5 w-5" style={{ color: values.primaryColor }} />
                   <p className="mt-3 text-sm font-semibold text-slate-950">Cor primaria</p>
@@ -334,6 +350,16 @@ export function BrandingSettingsPage() {
                   <Brush className="h-5 w-5" style={{ color: values.accentColor }} />
                   <p className="mt-3 text-sm font-semibold text-slate-950">Cor de destaque</p>
                   <p className="mt-1 text-xs text-slate-500">{values.accentColor}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-xl"
+                    style={{ background: values.iconBackgroundColor, color: iconPreviewForeground }}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-slate-950">Fundo do icone</p>
+                  <p className="mt-1 text-xs text-slate-500">{values.iconBackgroundColor}</p>
                 </div>
               </div>
 
@@ -437,6 +463,42 @@ export function BrandingSettingsPage() {
                   <Label htmlFor="heroImageUrl">Imagem hero publica</Label>
                   <Input id="heroImageUrl" {...register('heroImageUrl')} error={!!errors.heroImageUrl} />
                   {errors.heroImageUrl && <p className="text-xs text-destructive">{errors.heroImageUrl.message}</p>}
+                </div>
+              </div>
+
+              <div className="rounded-[1.25rem] border border-border/60 bg-surface/70 p-4">
+                <div className="mb-4">
+                  <p className="text-sm font-semibold text-foreground">Fundos de aplicacao da marca</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Ajuste o fundo usado atras de logos e icones para evitar conflito com a arte enviada.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <ColorField
+                    label="Logo em area clara"
+                    value={values.logoBackgroundColor}
+                    error={errors.logoBackgroundColor?.message}
+                    onChange={(value) =>
+                      setValue('logoBackgroundColor', value, { shouldDirty: true, shouldValidate: true })
+                    }
+                  />
+                  <ColorField
+                    label="Logo em area escura"
+                    value={values.logoDarkBackgroundColor}
+                    error={errors.logoDarkBackgroundColor?.message}
+                    onChange={(value) =>
+                      setValue('logoDarkBackgroundColor', value, { shouldDirty: true, shouldValidate: true })
+                    }
+                  />
+                  <ColorField
+                    label="Icone compacto"
+                    value={values.iconBackgroundColor}
+                    error={errors.iconBackgroundColor?.message}
+                    onChange={(value) =>
+                      setValue('iconBackgroundColor', value, { shouldDirty: true, shouldValidate: true })
+                    }
+                  />
                 </div>
               </div>
             </CardContent>

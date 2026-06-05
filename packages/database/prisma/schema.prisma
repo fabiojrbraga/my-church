@@ -169,6 +169,9 @@ model BrandingSettings {
   iconUrl          String?
   faviconUrl       String?
   heroImageUrl     String?
+  logoBackgroundColor     String   @default("#0f172a")
+  logoDarkBackgroundColor String   @default("#1e293b")
+  iconBackgroundColor     String   @default("#2563eb")
 
   primaryColor     String   @default("#2563eb")
   accentColor      String   @default("#f97316")

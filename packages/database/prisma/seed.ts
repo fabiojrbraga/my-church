@@ -66,6 +66,9 @@ async function main() {
       description:
         'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.',
       publicEmail: process.env.SEED_BRANCH_EMAIL ?? 'contato@mychurch.com',
+      logoBackgroundColor: '#0f172a',
+      logoDarkBackgroundColor: '#1e293b',
+      iconBackgroundColor: '#2563eb',
       primaryColor: '#2563eb',
       accentColor: '#f97316',
       sidebarColor: '#0f172a',

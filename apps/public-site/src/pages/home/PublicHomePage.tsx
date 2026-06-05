@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { adminLoginUrl } from '@/config/links'
 import { useBranding } from '@/components/BrandingProvider'
+import { getReadableTextColor } from '@/lib/branding'
 
 interface PublicItem {
   title: string
@@ -157,6 +158,7 @@ export function PublicHomePage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
   const heroImageUrl = branding.heroImageUrl ?? '/images/public-home-hero.png'
+  const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
   const locationLabel = [branding.contact.addressLine, branding.contact.city, branding.contact.state]
     .filter(Boolean)
     .join(' - ')
@@ -168,7 +170,10 @@ export function PublicHomePage() {
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <nav className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <a href="/" className="flex min-w-0 items-center gap-3" aria-label={`${branding.shortName} pagina inicial`}>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-slate-950 text-white">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] border border-slate-200/70"
+              style={{ backgroundColor: branding.logoBackgroundColor, color: logoForegroundColor }}
+            >
               {logo ? <img src={logo} alt="" className="h-7 w-7 object-contain" /> : <Church className="h-5 w-5" />}
             </div>
             <div className="min-w-0">

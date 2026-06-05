@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { adminLoginUrl } from '@/config/links'
 import { useBranding } from '@/components/BrandingProvider'
+import { getReadableTextColor } from '@/lib/branding'
 
 interface PixAddressPublicRecord {
   id: string
@@ -142,6 +143,7 @@ async function createBannerCanvas(
   item: PixAddressPublicRecord,
   qrDataUrl: string,
   fallbackLogoUrl?: string | null,
+  logoBackgroundColor = '#ffffff',
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = 1080
@@ -160,6 +162,7 @@ async function createBannerCanvas(
   ctx.fillRect(74, 1140, 932, 1)
 
   const bannerLogoUrl = item.effectiveLogoUrl ?? fallbackLogoUrl
+  const logoForegroundColor = getReadableTextColor(logoBackgroundColor)
 
   if (bannerLogoUrl) {
     try {
@@ -168,26 +171,26 @@ async function createBannerCanvas(
       ctx.beginPath()
       ctx.roundRect(72, 72, 132, 132, 24)
       ctx.clip()
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = logoBackgroundColor
       ctx.fillRect(72, 72, 132, 132)
       ctx.drawImage(logo, 72, 72, 132, 132)
       ctx.restore()
     } catch {
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = logoBackgroundColor
       ctx.beginPath()
       ctx.roundRect(72, 72, 132, 132, 24)
       ctx.fill()
-      ctx.fillStyle = '#0f172a'
+      ctx.fillStyle = logoForegroundColor
       ctx.font = '700 54px Arial'
       ctx.textAlign = 'center'
       ctx.fillText('PIX', 138, 150)
     }
   } else {
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = logoBackgroundColor
     ctx.beginPath()
     ctx.roundRect(72, 72, 132, 132, 24)
     ctx.fill()
-    ctx.fillStyle = '#0f172a'
+    ctx.fillStyle = logoForegroundColor
     ctx.font = '700 54px Arial'
     ctx.textAlign = 'center'
     ctx.fillText('PIX', 138, 150)
@@ -256,8 +259,9 @@ async function downloadBanner(
   qrDataUrl: string,
   kind: DownloadKind,
   fallbackLogoUrl?: string | null,
+  logoBackgroundColor?: string,
 ) {
-  const canvas = await createBannerCanvas(item, qrDataUrl, fallbackLogoUrl)
+  const canvas = await createBannerCanvas(item, qrDataUrl, fallbackLogoUrl, logoBackgroundColor)
   const filename = `pix-${item.identifier}.${kind}`
 
   if (kind === 'jpg') {
@@ -278,6 +282,7 @@ async function downloadBanner(
 export function PublicPixPage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
+  const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
@@ -346,7 +351,7 @@ export function PublicPixPage() {
     setDownloading(kind)
 
     try {
-      await downloadBanner(selectedItem, qrDataUrl, kind, logo)
+      await downloadBanner(selectedItem, qrDataUrl, kind, logo, branding.logoBackgroundColor)
     } finally {
       setDownloading(null)
     }
@@ -361,7 +366,10 @@ export function PublicPixPage() {
             className="flex min-w-0 items-center gap-3"
             aria-label={`${branding.shortName} pagina inicial`}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-slate-950 text-white">
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] border border-slate-200/70"
+              style={{ backgroundColor: branding.logoBackgroundColor, color: logoForegroundColor }}
+            >
               {logo ? <img src={logo} alt="" className="h-7 w-7 object-contain" /> : <Church className="h-5 w-5" />}
             </div>
             <div className="min-w-0">

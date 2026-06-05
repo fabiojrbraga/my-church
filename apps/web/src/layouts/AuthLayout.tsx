@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useBranding } from '@/components/BrandingProvider'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { getReadableTextColor } from '@/lib/branding'
 import { Church, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 
 const adminHighlights = [
@@ -31,6 +32,8 @@ export function AuthLayout() {
   const branding = useBranding()
   const logo = branding.logoDarkUrl ?? branding.logoUrl
   const compactLogo = branding.iconUrl ?? branding.logoUrl
+  const logoForegroundColor = getReadableTextColor(branding.logoDarkBackgroundColor)
+  const iconForegroundColor = getReadableTextColor(branding.iconBackgroundColor)
 
   if (accessToken && user) return <Navigate to="/dashboard" replace />
 
@@ -41,11 +44,14 @@ export function AuthLayout() {
       <div className="relative grid min-h-screen lg:grid-cols-[1.1fr_minmax(0,0.9fr)]">
         <section className="hidden border-r border-white/10 px-10 py-10 lg:flex lg:flex-col lg:justify-between xl:px-14">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 shadow-lg shadow-black/15">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-2xl shadow-lg shadow-black/15"
+              style={{ backgroundColor: branding.logoDarkBackgroundColor, color: logoForegroundColor }}
+            >
               {logo ? (
                 <img src={logo} alt="" className="h-8 w-8 object-contain" />
               ) : (
-                <Church className="h-5 w-5 text-white" />
+                <Church className="h-5 w-5" />
               )}
             </div>
             <div>
@@ -93,7 +99,10 @@ export function AuthLayout() {
         <section className="flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
           <div className="w-full max-w-[28rem] animate-scale-in rounded-[2rem] border border-white/10 bg-background/95 p-5 text-foreground shadow-soft backdrop-blur-xl sm:p-7 lg:p-8">
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-white">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: branding.iconBackgroundColor, color: iconForegroundColor }}
+              >
                 {compactLogo ? (
                   <img src={compactLogo} alt="" className="h-7 w-7 object-contain" />
                 ) : (

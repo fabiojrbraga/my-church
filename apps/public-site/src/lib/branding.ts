@@ -11,6 +11,9 @@ export interface BrandingSettings {
   iconUrl: string | null
   faviconUrl: string | null
   heroImageUrl: string | null
+  logoBackgroundColor: string
+  logoDarkBackgroundColor: string
+  iconBackgroundColor: string
   theme: {
     primaryColor: string
     accentColor: string
@@ -57,6 +60,9 @@ export const defaultBranding: BrandingSettings = {
   iconUrl: null,
   faviconUrl: null,
   heroImageUrl: null,
+  logoBackgroundColor: '#0f172a',
+  logoDarkBackgroundColor: '#1e293b',
+  iconBackgroundColor: '#2563eb',
   theme: {
     primaryColor: '#2563eb',
     accentColor: '#f97316',
@@ -128,6 +134,15 @@ function contrastForeground(hex: string) {
   const b = parseInt(normalized.slice(4, 6), 16)
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
   return luminance > 0.62 ? '222 47% 11%' : '0 0% 100%'
+}
+
+export function getReadableTextColor(hex: string) {
+  const normalized = hex.replace('#', '')
+  const r = parseInt(normalized.slice(0, 2), 16)
+  const g = parseInt(normalized.slice(2, 4), 16)
+  const b = parseInt(normalized.slice(4, 6), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.62 ? '#0f172a' : '#ffffff'
 }
 
 function adjustLightness(hex: string, amount: number) {
