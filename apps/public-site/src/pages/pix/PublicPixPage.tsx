@@ -352,7 +352,7 @@ async function downloadBanner(
 export function PublicPixPage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
-  const bannerLogo = branding.logoDarkUrl ?? branding.logoUrl ?? branding.iconUrl
+  const bannerLogo = branding.iconUrl ?? branding.logoDarkUrl ?? branding.logoUrl
   const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
