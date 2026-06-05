@@ -8,6 +8,7 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { MembersPage } from '@/pages/members/MembersPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 import { PixAddressesPage } from '@/pages/pix/PixAddressesPage'
+import { BrandingSettingsPage } from '@/pages/settings/BrandingSettingsPage'
 
 const moduleRoutes = [
   'eventos',
@@ -15,7 +16,6 @@ const moduleRoutes = [
   'escalas',
   'tesouraria',
   'escalas-musica',
-  'configuracoes',
 ] as const
 
 export const router = createBrowserRouter([
@@ -37,6 +37,7 @@ export const router = createBrowserRouter([
       { path: 'membros', element: <MembersPage /> },
       { path: 'filiais', element: <BranchesPage /> },
       { path: 'enderecos-pix', element: <PixAddressesPage /> },
+      { path: 'configuracoes', element: <BrandingSettingsPage /> },
       ...moduleRoutes.map((path) => ({ path, element: <ModulePlaceholderPage /> })),
     ],
   },

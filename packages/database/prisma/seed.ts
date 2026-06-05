@@ -55,6 +55,26 @@ async function main() {
   })
   console.log(`✅ Usuário criado: ${user.email} | role: ${user.role}`)
 
+  const branding = await prisma.brandingSettings.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      displayName: process.env.SEED_BRAND_DISPLAY_NAME ?? 'MyChurch',
+      shortName: process.env.SEED_BRAND_SHORT_NAME ?? 'MyChurch',
+      slogan: 'ERP e site publico para igrejas',
+      description:
+        'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.',
+      publicEmail: process.env.SEED_BRANCH_EMAIL ?? 'contato@mychurch.com',
+      primaryColor: '#2563eb',
+      accentColor: '#f97316',
+      sidebarColor: '#0f172a',
+      backgroundColor: '#f8fafc',
+      updatedById: user.id,
+    },
+  })
+  console.log(`Identidade visual criada: ${branding.displayName}`)
+
   console.log('')
   console.log('─────────────────────────────────────────')
   console.log('  Credenciais iniciais:')

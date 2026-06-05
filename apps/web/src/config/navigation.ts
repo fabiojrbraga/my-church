@@ -21,6 +21,7 @@ export interface NavigationItem {
   icon: LucideIcon
   status: NavigationStatus
   highlights: [string, string, string]
+  allowedRoles?: string[]
 }
 
 interface NavigationSection {
@@ -153,14 +154,15 @@ export const navigationSections: NavigationSection[] = [
 export const utilityNavigationItems: NavigationItem[] = [
   {
     to: '/configuracoes',
-    label: 'Configuracoes',
-    description: 'Preferencias, parametros da operacao e ajustes administrativos.',
+    label: 'Identidade visual',
+    description: 'Setup white label com marca, cores, dados publicos e links institucionais.',
     icon: Settings,
-    status: 'planned',
+    status: 'active',
+    allowedRoles: ['SUPER_ADMIN'],
     highlights: [
-      'Centralizacao das preferencias da aplicacao.',
-      'Ponto unico para ajustes institucionais e integracoes.',
-      'Padrao visual consistente com o restante do app.',
+      'Marca e cores aplicadas em runtime no admin e no site publico.',
+      'Dados publicos centralizados para comunicacao institucional.',
+      'Acesso restrito ao super administrador da instalacao.',
     ],
   },
 ]

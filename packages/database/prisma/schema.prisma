@@ -155,6 +155,46 @@ enum NotificationChannel {
   SYSTEM
 }
 
+model BrandingSettings {
+  id               String   @id @default("default")
+  displayName      String   @default("MyChurch")
+  shortName        String   @default("MyChurch")
+  slogan           String?
+  description      String   @default("Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.") @db.Text
+  legalName        String?
+  document         String?
+
+  logoUrl          String?
+  logoDarkUrl      String?
+  iconUrl          String?
+  faviconUrl       String?
+  heroImageUrl     String?
+
+  primaryColor     String   @default("#2563eb")
+  accentColor      String   @default("#f97316")
+  sidebarColor     String   @default("#0f172a")
+  backgroundColor  String   @default("#f8fafc")
+
+  publicEmail      String?
+  publicPhone      String?
+  publicWhatsapp   String?
+  addressLine      String?
+  city             String?
+  state            String?
+  instagramUrl     String?
+  youtubeUrl       String?
+  websiteUrl       String?
+
+  seoTitle         String?
+  seoDescription   String?  @db.Text
+
+  updatedById      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("branding_settings")
+}
+
 // ─────────────────────────────────────────────
 // BRANCH (Filiais)
 // ─────────────────────────────────────────────

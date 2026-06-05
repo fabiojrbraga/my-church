@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { adminLoginUrl } from '@/config/links'
+import { useBranding } from '@/components/BrandingProvider'
 
 interface PixAddressPublicRecord {
   id: string
@@ -137,7 +138,11 @@ function drawCenteredText(
   return y + lines.length * lineHeight
 }
 
-async function createBannerCanvas(item: PixAddressPublicRecord, qrDataUrl: string) {
+async function createBannerCanvas(
+  item: PixAddressPublicRecord,
+  qrDataUrl: string,
+  fallbackLogoUrl?: string | null,
+) {
   const canvas = document.createElement('canvas')
   canvas.width = 1080
   canvas.height = 1600
@@ -154,9 +159,11 @@ async function createBannerCanvas(item: PixAddressPublicRecord, qrDataUrl: strin
   ctx.fillStyle = '#d1fae5'
   ctx.fillRect(74, 1140, 932, 1)
 
-  if (item.effectiveLogoUrl) {
+  const bannerLogoUrl = item.effectiveLogoUrl ?? fallbackLogoUrl
+
+  if (bannerLogoUrl) {
     try {
-      const logo = await loadImage(item.effectiveLogoUrl)
+      const logo = await loadImage(bannerLogoUrl)
       ctx.save()
       ctx.beginPath()
       ctx.roundRect(72, 72, 132, 132, 24)
@@ -244,8 +251,13 @@ async function generateQrDataUrl(code: string) {
   })
 }
 
-async function downloadBanner(item: PixAddressPublicRecord, qrDataUrl: string, kind: DownloadKind) {
-  const canvas = await createBannerCanvas(item, qrDataUrl)
+async function downloadBanner(
+  item: PixAddressPublicRecord,
+  qrDataUrl: string,
+  kind: DownloadKind,
+  fallbackLogoUrl?: string | null,
+) {
+  const canvas = await createBannerCanvas(item, qrDataUrl, fallbackLogoUrl)
   const filename = `pix-${item.identifier}.${kind}`
 
   if (kind === 'jpg') {
@@ -264,6 +276,8 @@ async function downloadBanner(item: PixAddressPublicRecord, qrDataUrl: string, k
 }
 
 export function PublicPixPage() {
+  const branding = useBranding()
+  const logo = branding.logoUrl ?? branding.iconUrl
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
@@ -332,27 +346,27 @@ export function PublicPixPage() {
     setDownloading(kind)
 
     try {
-      await downloadBanner(selectedItem, qrDataUrl, kind)
+      await downloadBanner(selectedItem, qrDataUrl, kind, logo)
     } finally {
       setDownloading(null)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#f7faf8] text-slate-950">
+    <div className="min-h-screen bg-background text-slate-950">
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <nav className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link
             to="/"
             className="flex min-w-0 items-center gap-3"
-            aria-label="MyChurch pagina inicial"
+            aria-label={`${branding.shortName} pagina inicial`}
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-slate-950 text-white">
-              <Church className="h-5 w-5" />
+              {logo ? <img src={logo} alt="" className="h-7 w-7 object-contain" /> : <Church className="h-5 w-5" />}
             </div>
             <div className="min-w-0">
               <p className="font-display text-lg font-semibold tracking-normal text-slate-950">
-                MyChurch
+                {branding.shortName}
               </p>
               <p className="truncate text-xs font-medium text-slate-500">Pix publico</p>
             </div>
@@ -389,7 +403,7 @@ export function PublicPixPage() {
               Pix identificado
             </Badge>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-5xl">
-              Chaves Pix oficiais da instituicao.
+              Chaves Pix oficiais de {branding.shortName}.
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-600">
               Escolha uma finalidade, copie o codigo para usar no banco ou gere um banner com QR

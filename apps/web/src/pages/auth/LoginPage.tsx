@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth.store'
+import { useBranding } from '@/components/BrandingProvider'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +21,7 @@ type FormData = z.infer<typeof schema>
 export function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const branding = useBranding()
 
   const {
     register,
@@ -49,7 +51,7 @@ export function LoginPage() {
             Entre para continuar a operacao.
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Faca login com a conta administrativa da sua igreja para acessar os modulos e o painel principal.
+            Faca login com a conta administrativa de {branding.shortName} para acessar os modulos e o painel principal.
           </p>
         </div>
       </div>
@@ -108,7 +110,7 @@ export function LoginPage() {
         <div>
           <p className="text-sm font-semibold text-foreground">Sessao administrativa protegida</p>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Acesso reservado para equipes autorizadas, com navegacao interna para a rotina operacional da igreja.
+            Acesso reservado para equipes autorizadas, com navegacao interna para a rotina operacional.
           </p>
         </div>
       </div>

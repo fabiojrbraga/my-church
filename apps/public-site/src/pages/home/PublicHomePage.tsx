@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { adminLoginUrl } from '@/config/links'
+import { useBranding } from '@/components/BrandingProvider'
 
 interface PublicItem {
   title: string
@@ -153,17 +154,28 @@ function UsefulLinkCard({ title, description, href, icon: Icon }: UsefulLink) {
 }
 
 export function PublicHomePage() {
+  const branding = useBranding()
+  const logo = branding.logoUrl ?? branding.iconUrl
+  const heroImageUrl = branding.heroImageUrl ?? '/images/public-home-hero.png'
+  const locationLabel = [branding.contact.addressLine, branding.contact.city, branding.contact.state]
+    .filter(Boolean)
+    .join(' - ')
+  const serviceContact = branding.contact.publicPhone ?? branding.contact.publicWhatsapp
+  const messageContact = branding.contact.publicEmail ?? branding.contact.websiteUrl
+
   return (
-    <div className="min-h-screen bg-[#f7faf8] text-slate-950">
+    <div className="min-h-screen bg-background text-slate-950">
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <nav className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <a href="/" className="flex min-w-0 items-center gap-3" aria-label="MyChurch pagina inicial">
+          <a href="/" className="flex min-w-0 items-center gap-3" aria-label={`${branding.shortName} pagina inicial`}>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-slate-950 text-white">
-              <Church className="h-5 w-5" />
+              {logo ? <img src={logo} alt="" className="h-7 w-7 object-contain" /> : <Church className="h-5 w-5" />}
             </div>
             <div className="min-w-0">
-              <p className="font-display text-lg font-semibold tracking-normal text-slate-950">MyChurch</p>
-              <p className="truncate text-xs font-medium text-slate-500">Instituicao e comunidade</p>
+              <p className="font-display text-lg font-semibold tracking-normal text-slate-950">{branding.shortName}</p>
+              <p className="truncate text-xs font-medium text-slate-500">
+                {branding.slogan ?? 'Instituicao e comunidade'}
+              </p>
             </div>
           </a>
 
@@ -205,12 +217,12 @@ export function PublicHomePage() {
       <main>
         <section className="relative isolate min-h-[calc(100svh-8rem)] overflow-hidden">
           <img
-            src="/images/public-home-hero.png"
+            src={heroImageUrl}
             alt="Pessoas chegando em um ambiente acolhedor da igreja"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.84)_0%,rgba(15,23,42,0.66)_42%,rgba(15,23,42,0.16)_82%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f7faf8] to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
 
           <div className="relative z-10 mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-7xl flex-col justify-center px-4 py-14 sm:px-6 lg:px-8">
             <div className="max-w-2xl">
@@ -218,11 +230,10 @@ export function PublicHomePage() {
                 Aberta ao publico
               </Badge>
               <h1 className="mt-6 font-display text-5xl font-semibold leading-tight tracking-normal text-white sm:text-6xl lg:text-7xl">
-                MyChurch
+                {branding.displayName}
               </h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg">
-                Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos cultos,
-                ministerios, eventos e canais oficiais da instituicao.
+                {branding.description}
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -337,7 +348,7 @@ export function PublicHomePage() {
                 Contato
               </Badge>
               <h2 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-4xl">
-                Canais oficiais da instituicao.
+                Canais oficiais de {branding.shortName}.
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-600">
                 Use esta area para orientar visitantes sobre secretaria, localizacao, atendimento pastoral e canais de
@@ -352,7 +363,7 @@ export function PublicHomePage() {
                   Localizacao
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Endereco e orientacoes de chegada podem ser publicados aqui.
+                  {locationLabel || 'Endereco e orientacoes de chegada podem ser publicados aqui.'}
                 </p>
               </div>
               <div className="rounded-[8px] border border-slate-200 bg-white p-5">
@@ -361,7 +372,7 @@ export function PublicHomePage() {
                   Atendimento
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Horarios da secretaria e canais de suporte ficam disponiveis ao publico.
+                  {serviceContact || 'Horarios da secretaria e canais de suporte ficam disponiveis ao publico.'}
                 </p>
               </div>
               <div className="rounded-[8px] border border-slate-200 bg-white p-5">
@@ -370,7 +381,7 @@ export function PublicHomePage() {
                   Mensagens
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Direcione pedidos de informacao, visitas, oracao e contato pastoral.
+                  {messageContact || 'Direcione pedidos de informacao, visitas, oracao e contato pastoral.'}
                 </p>
               </div>
             </div>
@@ -380,7 +391,7 @@ export function PublicHomePage() {
 
       <footer className="border-t border-slate-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>MyChurch - informacoes publicas da instituicao.</p>
+          <p>{branding.shortName} - informacoes publicas da instituicao.</p>
           <a href={adminLoginUrl} className="inline-flex items-center gap-2 font-semibold text-primary">
             Entrar na administracao
             <ArrowRight className="h-4 w-4" />

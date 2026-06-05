@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Church, LogOut, X } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
+import { useBranding } from '@/components/BrandingProvider'
 import { navigationSections, utilityNavigationItems } from '@/config/navigation'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -15,6 +16,18 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const logout = useAuthStore((s) => s.logout)
   const user = useAuthStore((s) => s.user)
+  const branding = useBranding()
+  const sidebarLogo = branding.logoDarkUrl ?? branding.logoUrl
+  const userRole = user?.role
+  const visibleSections = navigationSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.allowedRoles || (userRole && item.allowedRoles.includes(userRole))),
+    }))
+    .filter((section) => section.items.length > 0)
+  const visibleUtilityItems = utilityNavigationItems.filter(
+    (item) => !item.allowedRoles || (userRole && item.allowedRoles.includes(userRole)),
+  )
 
   useEffect(() => {
     if (open) {
@@ -46,11 +59,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="flex items-center justify-between border-b border-sidebar-border/80 px-5 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white shadow-lg shadow-black/10">
-              <Church className="h-5 w-5" />
+              {sidebarLogo ? (
+                <img src={sidebarLogo} alt="" className="h-8 w-8 object-contain" />
+              ) : (
+                <Church className="h-5 w-5" />
+              )}
             </div>
             <div>
-              <p className="font-display text-lg font-semibold tracking-tight text-white">MyChurch</p>
-              <p className="text-xs text-sidebar-foreground">ERP para gestao e operacao</p>
+              <p className="font-display text-lg font-semibold tracking-tight text-white">{branding.shortName}</p>
+              <p className="text-xs text-sidebar-foreground">{branding.slogan ?? 'ERP para gestao e operacao'}</p>
             </div>
           </div>
 
@@ -81,14 +98,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3">
               <p className="text-xs leading-5 text-sidebar-foreground/80">
-                Use o menu lateral para acessar os modulos disponiveis e acompanhar a operacao da igreja.
+                Use o menu lateral para acessar os modulos disponiveis e acompanhar a operacao.
               </p>
             </div>
           </div>
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-          {navigationSections.map((section) => (
+          {visibleSections.map((section) => (
             <div key={section.title}>
               <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/70">
                 {section.title}
@@ -145,7 +162,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         <div className="border-t border-sidebar-border/80 px-3 py-4">
           <div className="space-y-1.5">
-            {utilityNavigationItems.map(({ to, label, icon: Icon }) => (
+            {visibleUtilityItems.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}

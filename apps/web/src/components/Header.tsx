@@ -1,9 +1,10 @@
 import { Bell, Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/stores/auth.store'
+import { useBranding } from '@/components/BrandingProvider'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { findNavigationItem } from '@/config/navigation'
+import { useAuthStore } from '@/stores/auth.store'
 import { labels } from '@my-church/shared'
 
 interface HeaderProps {
@@ -13,6 +14,7 @@ interface HeaderProps {
 export function Header({ onOpenSidebar }: HeaderProps) {
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
+  const branding = useBranding()
   const currentItem = findNavigationItem(location.pathname)
   const initials = user?.name
     ? user.name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
@@ -31,7 +33,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           size="icon"
           className="lg:hidden"
           onClick={onOpenSidebar}
-          aria-label="Abrir navegação"
+          aria-label="Abrir navegacao"
         >
           <Menu className="h-4 w-4" />
         </Button>
@@ -39,7 +41,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <Badge variant={currentItem?.status === 'active' ? 'info' : 'warning'}>
-              {currentItem?.status === 'active' ? 'Disponível' : 'Em implantação'}
+              {currentItem?.status === 'active' ? 'Disponivel' : 'Em implantacao'}
             </Badge>
             <span className="hidden text-xs font-medium capitalize text-muted-foreground sm:inline-flex">
               {todayLabel}
@@ -47,10 +49,10 @@ export function Header({ onOpenSidebar }: HeaderProps) {
           </div>
 
           <h1 className="truncate font-display text-xl font-semibold text-foreground sm:text-2xl">
-            {currentItem?.label ?? 'MyChurch'}
+            {currentItem?.label ?? branding.shortName}
           </h1>
           <p className="mt-1 hidden max-w-2xl text-sm text-muted-foreground sm:block">
-            {currentItem?.description ?? 'Painel central da operação da igreja.'}
+            {currentItem?.description ?? `Painel central da operacao de ${branding.shortName}.`}
           </p>
         </div>
 
@@ -59,7 +61,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
             variant="outline"
             size="icon"
             className="border-border/60 bg-surface/70"
-            aria-label="Notificações"
+            aria-label="Notificacoes"
           >
             <Bell className="h-4 w-4" />
           </Button>
