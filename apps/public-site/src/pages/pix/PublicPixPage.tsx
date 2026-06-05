@@ -42,6 +42,15 @@ interface PixAddressPublicRecord {
 
 type DownloadKind = 'pdf' | 'jpg'
 
+interface PixBannerBrandOptions {
+  iconUrl?: string | null
+  fallbackLogoUrl?: string | null
+  logoBackgroundColor: string
+  primaryColor: string
+  accentColor: string
+  shortName: string
+}
+
 function formatExpiration(value: string | null) {
   if (!value) return 'Sem data de expiracao'
 
@@ -194,12 +203,18 @@ function drawContainedImage(
   ctx.drawImage(image, offsetX, offsetY, width, height)
 }
 
+function hexToRgba(hex: string, alpha: number) {
+  const normalized = hex.replace('#', '')
+  const r = parseInt(normalized.slice(0, 2), 16)
+  const g = parseInt(normalized.slice(2, 4), 16)
+  const b = parseInt(normalized.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
 async function createBannerCanvas(
   item: PixAddressPublicRecord,
   qrDataUrl: string,
-  fallbackLogoUrl?: string | null,
-  logoBackgroundColor = '#ffffff',
-  logoFallbackLabel = 'LOGO',
+  brand: PixBannerBrandOptions,
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = 1080
@@ -208,17 +223,20 @@ async function createBannerCanvas(
 
   if (!ctx) throw new Error('Canvas indisponivel')
 
+  const primaryForegroundColor = getReadableTextColor(brand.primaryColor)
+  const logoForegroundColor = getReadableTextColor(brand.logoBackgroundColor)
+  const footerMessage = `Use somente os canais oficiais da ${brand.shortName} para confirmar informacoes.`
+
   ctx.fillStyle = '#f8fafc'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.fillStyle = '#0f172a'
+  ctx.fillStyle = brand.primaryColor
   ctx.fillRect(0, 0, canvas.width, 430)
-  ctx.fillStyle = '#10b981'
+  ctx.fillStyle = brand.accentColor
   ctx.fillRect(0, 415, canvas.width, 14)
-  ctx.fillStyle = '#d1fae5'
+  ctx.fillStyle = hexToRgba(brand.accentColor, 0.16)
   ctx.fillRect(74, 1140, 932, 1)
 
-  const bannerLogoUrl = item.effectiveLogoUrl ?? fallbackLogoUrl
-  const logoForegroundColor = getReadableTextColor(logoBackgroundColor)
+  const bannerLogoUrl = brand.iconUrl ?? brand.fallbackLogoUrl ?? item.effectiveLogoUrl
   const logoX = 72
   const logoY = 72
   const logoSize = 132
@@ -227,7 +245,7 @@ async function createBannerCanvas(
     try {
       const logo = await loadImage(bannerLogoUrl)
       ctx.save()
-      ctx.fillStyle = logoBackgroundColor
+      ctx.fillStyle = brand.logoBackgroundColor
       ctx.beginPath()
       ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
       ctx.fill()
@@ -239,34 +257,34 @@ async function createBannerCanvas(
     } catch {
       drawLogoFallback(
         ctx,
-        logoFallbackLabel,
+        brand.shortName,
         logoX,
         logoY,
         logoSize,
-        logoBackgroundColor,
+        brand.logoBackgroundColor,
         logoForegroundColor,
       )
     }
   } else {
     drawLogoFallback(
       ctx,
-      logoFallbackLabel,
+      brand.shortName,
       logoX,
       logoY,
       logoSize,
-      logoBackgroundColor,
+      brand.logoBackgroundColor,
       logoForegroundColor,
     )
   }
 
   ctx.textAlign = 'left'
-  ctx.fillStyle = '#bbf7d0'
+  ctx.fillStyle = brand.accentColor
   ctx.font = '700 30px Arial'
   ctx.fillText('PIX IDENTIFICADO', 238, 106)
-  ctx.fillStyle = '#ffffff'
+  ctx.fillStyle = primaryForegroundColor
   ctx.font = '700 68px Arial'
   drawWrappedText(ctx, item.purpose, 238, 178, 720, 76, 2)
-  ctx.fillStyle = 'rgba(255,255,255,0.78)'
+  ctx.fillStyle = hexToRgba(primaryForegroundColor, 0.78)
   ctx.font = '400 30px Arial'
   ctx.fillText(item.branch.name, 238, 338)
 
@@ -290,17 +308,13 @@ async function createBannerCanvas(
   drawCenteredText(ctx, `Identificador: ${item.identifier}`, 1344, 820, 38)
   drawCenteredText(ctx, `Validade: ${formatExpiration(item.expiresAt)}`, 1398, 820, 38)
 
-  ctx.fillStyle = '#ecfdf5'
+  ctx.fillStyle = hexToRgba(brand.accentColor, 0.12)
   ctx.beginPath()
   ctx.roundRect(104, 1480, 872, 64, 20)
   ctx.fill()
-  ctx.fillStyle = '#065f46'
+  ctx.fillStyle = '#0f172a'
   ctx.font = '700 24px Arial'
-  ctx.fillText(
-    'Use somente os canais oficiais da instituicao para confirmar informacoes.',
-    540,
-    1522,
-  )
+  ctx.fillText(footerMessage, 540, 1522, 832)
 
   return canvas
 }
@@ -321,17 +335,9 @@ async function downloadBanner(
   item: PixAddressPublicRecord,
   qrDataUrl: string,
   kind: DownloadKind,
-  fallbackLogoUrl?: string | null,
-  logoBackgroundColor?: string,
-  logoFallbackLabel?: string,
+  brand: PixBannerBrandOptions,
 ) {
-  const canvas = await createBannerCanvas(
-    item,
-    qrDataUrl,
-    fallbackLogoUrl,
-    logoBackgroundColor,
-    logoFallbackLabel,
-  )
+  const canvas = await createBannerCanvas(item, qrDataUrl, brand)
   const filename = `pix-${item.identifier}.${kind}`
 
   if (kind === 'jpg') {
@@ -352,7 +358,6 @@ async function downloadBanner(
 export function PublicPixPage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
-  const bannerLogo = branding.iconUrl ?? branding.logoDarkUrl ?? branding.logoUrl
   const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
@@ -426,9 +431,14 @@ export function PublicPixPage() {
         selectedItem,
         qrDataUrl,
         kind,
-        bannerLogo,
-        branding.logoDarkBackgroundColor,
-        branding.shortName,
+        {
+          iconUrl: branding.iconUrl,
+          fallbackLogoUrl: branding.logoDarkUrl ?? branding.logoUrl,
+          logoBackgroundColor: branding.iconBackgroundColor,
+          primaryColor: branding.theme.primaryColor,
+          accentColor: branding.theme.accentColor,
+          shortName: branding.shortName,
+        },
       )
     } finally {
       setDownloading(null)
