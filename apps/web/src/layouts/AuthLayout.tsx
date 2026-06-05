@@ -1,4 +1,4 @@
-import { Link, Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,8 @@ const adminHighlights = [
     icon: Sparkles,
   },
 ]
+
+const publicSiteUrl = import.meta.env.VITE_PUBLIC_SITE_URL ?? 'http://localhost:5174'
 
 export function AuthLayout() {
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -95,7 +97,7 @@ export function AuthLayout() {
             <Outlet />
 
             <Button asChild variant="ghost" className="mt-6 w-full">
-              <Link to="/">Voltar para a pagina publica</Link>
+              <a href={publicSiteUrl}>Voltar para a pagina publica</a>
             </Button>
           </div>
         </section>

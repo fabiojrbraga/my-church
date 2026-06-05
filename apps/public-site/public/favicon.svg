@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>MyChurch</title>
+  <rect width="64" height="64" rx="12" fill="#0f172a" />
+  <path d="M32 10l16 12v24a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V22l16-12z" fill="#2563eb" />
+  <path d="M32 10l16 12-3 4-13-10-13 10-3-4 16-12z" fill="#f59e0b" />
+  <path d="M29 18h6v10h10v6H35v12h-6V34H19v-6h10V18z" fill="#f8fafc" />
+</svg>

@@ -1,5 +1,4 @@
 import type { LucideIcon } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   BookOpen,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { adminLoginUrl } from '@/config/links'
 
 interface PublicItem {
   title: string
@@ -180,10 +180,10 @@ export function PublicHomePage() {
           </div>
 
           <Button asChild size="md" className="ml-auto md:ml-2">
-            <Link to="/entrar">
+            <a href={adminLoginUrl}>
               Entrar
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </a>
           </Button>
         </nav>
 
@@ -227,10 +227,10 @@ export function PublicHomePage() {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg">
-                  <Link to="/entrar">
+                  <a href={adminLoginUrl}>
                     Entrar
                     <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </Button>
                 <Button asChild variant="secondary" size="lg" className="bg-white/90 text-slate-950 hover:bg-white">
                   <a href="#sobre">Conhecer a instituicao</a>
@@ -381,10 +381,10 @@ export function PublicHomePage() {
       <footer className="border-t border-slate-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>MyChurch - informacoes publicas da instituicao.</p>
-          <Link to="/entrar" className="inline-flex items-center gap-2 font-semibold text-primary">
+          <a href={adminLoginUrl} className="inline-flex items-center gap-2 font-semibold text-primary">
             Entrar na administracao
             <ArrowRight className="h-4 w-4" />
-          </Link>
+          </a>
         </div>
       </footer>
     </div>

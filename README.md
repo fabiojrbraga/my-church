@@ -18,7 +18,8 @@ Sistema ERP multifilial (Matriz + Filiais + Congregações) para gestão de igre
 | Camada | Tecnologia |
 |---|---|
 | Backend | Node.js 20 + Fastify + Prisma + PostgreSQL |
-| Frontend | React 19 + Vite + Tailwind CSS + shadcn/ui |
+| Site público | React 19 + Vite + Tailwind CSS |
+| Admin Web | React 19 + Vite + Tailwind CSS + shadcn/ui |
 | Cache | Redis |
 | Jobs | BullMQ |
 | Monorepo | Turborepo |
@@ -50,12 +51,13 @@ docker compose up postgres redis -d
 npm run db:push
 npm run db:seed
 
-# 5. Inicie em modo dev (API + Web simultâneos)
+# 5. Inicie em modo dev (API + frontends simultâneos)
 npm run dev
 ```
 
 Acesse:
-- **Web:** http://localhost:5173
+- **Admin Web:** http://localhost:5173
+- **Site público:** http://localhost:5174
 - **API:** http://localhost:3333
 - **Docs (Swagger):** http://localhost:3333/docs
 
@@ -89,13 +91,21 @@ O Easypanel detecta o `Dockerfile` automaticamente a partir do repositório.
   JWT_SECRET=<gere com: openssl rand -base64 32>
   JWT_EXPIRES_IN=15m
   REFRESH_TOKEN_EXPIRES_IN=7d
-  CORS_ORIGIN=https://app.seudominio.com.br
+  CORS_ORIGIN=https://app.seudominio.com.br,https://www.seudominio.com.br
   PORT=3333
   HOST=0.0.0.0
   ```
 - Domínio: `api.seudominio.com.br`
 
-#### 4. Web (`apps/web`)
+#### 4. Site público (`apps/public-site`)
+- Tipo: **App → GitHub**
+- Repositório: `seu-usuario/my-church`
+- Dockerfile Path: `apps/public-site/Dockerfile`
+- Build Context: `.`
+- Porta: `80`
+- Domínio: `www.seudominio.com.br`
+
+#### 5. Admin Web (`apps/web`)
 - Tipo: **App → GitHub**
 - Repositório: `seu-usuario/my-church`
 - Dockerfile Path: `apps/web/Dockerfile`
@@ -118,7 +128,8 @@ npx prisma db push --schema=./prisma/schema.prisma
 my-church/
 ├── apps/
 │   ├── api/          # Backend Fastify (Dockerfile próprio)
-│   └── web/          # Frontend React (Dockerfile próprio)
+│   ├── public-site/  # Site público e portal do membro
+│   └── web/          # Admin Web React (Dockerfile próprio)
 ├── packages/
 │   ├── database/     # Prisma schema + client
 │   └── shared/       # Types e labels pt-BR compartilhados

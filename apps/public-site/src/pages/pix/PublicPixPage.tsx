@@ -17,6 +17,7 @@ import { api } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { adminLoginUrl } from '@/config/links'
 
 interface PixAddressPublicRecord {
   id: string
@@ -373,10 +374,10 @@ export function PublicPixPage() {
           </div>
 
           <Button asChild size="md" className="ml-auto md:ml-2">
-            <Link to="/entrar">
+            <a href={adminLoginUrl}>
               Entrar
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </a>
           </Button>
         </nav>
       </header>

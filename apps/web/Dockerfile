@@ -29,8 +29,10 @@ RUN npm run build --workspace=apps/web
 # ──────────────────────────────────────────────
 FROM nginx:alpine AS runner
 
+ENV API_UPSTREAM=http://api:3333
+
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx/spa.conf.template /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 
