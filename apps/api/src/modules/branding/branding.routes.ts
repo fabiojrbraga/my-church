@@ -100,6 +100,10 @@ const brandingBodySchema = z.object({
   }),
 })
 
+const brandingAssetQuerySchema = z.object({
+  url: z.string().trim().url('Informe uma URL valida'),
+})
+
 async function ensureBrandingSettings() {
   return prisma.brandingSettings.upsert({
     where: { id: BRANDING_SETTINGS_ID },
@@ -109,6 +113,20 @@ async function ensureBrandingSettings() {
       ...defaultBranding,
     },
   })
+}
+
+type BrandingSettingsRecord = Awaited<ReturnType<typeof ensureBrandingSettings>>
+
+const publicAssetFields = [
+  'logoUrl',
+  'logoDarkUrl',
+  'iconUrl',
+  'faviconUrl',
+  'heroImageUrl',
+] as const
+
+function isConfiguredPublicAssetUrl(settings: BrandingSettingsRecord, url: string) {
+  return publicAssetFields.some((field) => settings[field] === url)
 }
 
 function serializeBranding(
@@ -170,6 +188,56 @@ export async function brandingRoutes(app: FastifyInstance) {
   app.get('/public', async () => {
     const settings = await ensureBrandingSettings()
     return { item: serializeBranding(settings) }
+  })
+
+  app.get('/asset', async (request, reply) => {
+    const { url } = brandingAssetQuerySchema.parse(request.query)
+    const settings = await ensureBrandingSettings()
+
+    if (!isConfiguredPublicAssetUrl(settings, url)) {
+      return reply.status(403).send({ message: 'Asset nao autorizado' })
+    }
+
+    const contentLengthLimit = 6 * 1024 * 1024
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 10000)
+
+    try {
+      const response = await fetch(url, { signal: controller.signal })
+
+      if (!response.ok) {
+        return reply.status(502).send({ message: 'Nao foi possivel carregar o asset' })
+      }
+
+      const contentLength = Number(response.headers.get('content-length') ?? 0)
+
+      if (contentLength > contentLengthLimit) {
+        return reply.status(413).send({ message: 'Asset muito grande' })
+      }
+
+      const contentType = response.headers.get('content-type') ?? 'application/octet-stream'
+      const mimeType = contentType.split(';')[0]?.trim() ?? 'application/octet-stream'
+      const isImage = mimeType.startsWith('image/') || mimeType === 'application/octet-stream'
+
+      if (!isImage) {
+        return reply.status(415).send({ message: 'Asset precisa ser uma imagem' })
+      }
+
+      const arrayBuffer = await response.arrayBuffer()
+
+      if (arrayBuffer.byteLength > contentLengthLimit) {
+        return reply.status(413).send({ message: 'Asset muito grande' })
+      }
+
+      return reply
+        .header('Content-Type', contentType)
+        .header('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
+        .send(Buffer.from(arrayBuffer))
+    } catch {
+      return reply.status(502).send({ message: 'Nao foi possivel carregar o asset' })
+    } finally {
+      clearTimeout(timeout)
+    }
   })
 
   app.get('/admin', { preHandler: [superAdminGuard] }, async () => {

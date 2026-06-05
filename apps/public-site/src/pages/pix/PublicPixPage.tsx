@@ -70,6 +70,40 @@ function downloadUrl(url: string, filename: string) {
   document.body.removeChild(link)
 }
 
+interface ImageCandidate {
+  src?: string | null
+  useBrandingProxy?: boolean
+}
+
+function normalizeImageUrl(src?: string | null) {
+  if (!src) return null
+
+  const normalized = src.trim()
+
+  return normalized || null
+}
+
+function getBrandingAssetUrl(src?: string | null) {
+  const normalized = normalizeImageUrl(src)
+
+  if (!normalized) return null
+  if (normalized.startsWith('/') || normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return normalized
+  }
+
+  try {
+    const url = new URL(normalized)
+
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return `/api/v1/branding/asset?url=${encodeURIComponent(normalized)}`
+    }
+  } catch {
+    return normalized
+  }
+
+  return normalized
+}
+
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image()
@@ -203,6 +237,30 @@ function drawContainedImage(
   ctx.drawImage(image, offsetX, offsetY, width, height)
 }
 
+async function loadFirstAvailableImage(candidates: ImageCandidate[]) {
+  for (const candidate of candidates) {
+    const normalizedSource = normalizeImageUrl(candidate.src)
+    const sources = new Set(
+      [
+        candidate.useBrandingProxy ? getBrandingAssetUrl(candidate.src) : null,
+        normalizedSource,
+      ].filter(Boolean) as string[],
+    )
+
+    if (!sources.size) continue
+
+    for (const source of sources) {
+      try {
+        return await loadImage(source)
+      } catch {
+        continue
+      }
+    }
+  }
+
+  return null
+}
+
 function hexToRgba(hex: string, alpha: number) {
   const normalized = hex.replace('#', '')
   const r = parseInt(normalized.slice(0, 2), 16)
@@ -236,35 +294,26 @@ async function createBannerCanvas(
   ctx.fillStyle = hexToRgba(brand.accentColor, 0.16)
   ctx.fillRect(74, 1140, 932, 1)
 
-  const bannerLogoUrl = brand.iconUrl ?? brand.fallbackLogoUrl ?? item.effectiveLogoUrl
   const logoX = 72
   const logoY = 72
   const logoSize = 132
+  const logo = await loadFirstAvailableImage([
+    { src: brand.iconUrl, useBrandingProxy: true },
+    { src: brand.fallbackLogoUrl, useBrandingProxy: true },
+    { src: item.effectiveLogoUrl },
+  ])
 
-  if (bannerLogoUrl) {
-    try {
-      const logo = await loadImage(bannerLogoUrl)
-      ctx.save()
-      ctx.fillStyle = brand.logoBackgroundColor
-      ctx.beginPath()
-      ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
-      ctx.fill()
-      ctx.beginPath()
-      ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
-      ctx.clip()
-      drawContainedImage(ctx, logo, logoX, logoY, logoSize, 18)
-      ctx.restore()
-    } catch {
-      drawLogoFallback(
-        ctx,
-        brand.shortName,
-        logoX,
-        logoY,
-        logoSize,
-        brand.logoBackgroundColor,
-        logoForegroundColor,
-      )
-    }
+  if (logo) {
+    ctx.save()
+    ctx.fillStyle = brand.logoBackgroundColor
+    ctx.beginPath()
+    ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.roundRect(logoX, logoY, logoSize, logoSize, 24)
+    ctx.clip()
+    drawContainedImage(ctx, logo, logoX, logoY, logoSize, 18)
+    ctx.restore()
   } else {
     drawLogoFallback(
       ctx,
