@@ -1,7 +1,6 @@
 import { ArrowRight, Church, Construction } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { adminLoginUrl } from '@/config/links'
 import { useBranding } from '@/components/BrandingProvider'
 import { getReadableTextColor } from '@/lib/branding'
 
@@ -49,11 +48,9 @@ export function PublicHomePage() {
             </a>
           </div>
 
-          <Button asChild size="md" className="ml-auto md:ml-2">
-            <a href={adminLoginUrl}>
-              Entrar
-              <ArrowRight className="h-4 w-4" />
-            </a>
+          <Button type="button" size="md" className="ml-auto md:ml-2">
+            Entrar
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </nav>
 
@@ -92,11 +89,9 @@ export function PublicHomePage() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg">
-                  <a href={adminLoginUrl}>
-                    Entrar
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
+                <Button type="button" size="lg">
+                  Entrar
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button
                   asChild
