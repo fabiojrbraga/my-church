@@ -2,22 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import QRCode from 'qrcode'
-import {
-  ArrowRight,
-  Check,
-  Church,
-  Copy,
-  Download,
-  FileImage,
-  FileText,
-  QrCode,
-  Search,
-} from 'lucide-react'
+import { Check, Church, Copy, FileImage, FileText, QrCode, Search, ShieldCheck } from 'lucide-react'
 import { api } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { adminLoginUrl } from '@/config/links'
 import { useBranding } from '@/components/BrandingProvider'
 import { getReadableTextColor } from '@/lib/branding'
 
@@ -52,13 +41,17 @@ interface PixBannerBrandOptions {
 }
 
 function formatExpiration(value: string | null) {
-  if (!value) return 'Sem data de expiracao'
+  if (!value) return 'Sem data de expiração'
 
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   }).format(new Date(value))
+}
+
+function getOfficialChannelsMessage(shortName: string) {
+  return `Use somente os canais oficiais da ${shortName} para confirmar informações.`
 }
 
 function downloadUrl(url: string, filename: string) {
@@ -87,7 +80,11 @@ function getBrandingAssetUrl(src?: string | null) {
   const normalized = normalizeImageUrl(src)
 
   if (!normalized) return null
-  if (normalized.startsWith('/') || normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+  if (
+    normalized.startsWith('/') ||
+    normalized.startsWith('data:') ||
+    normalized.startsWith('blob:')
+  ) {
     return normalized
   }
 
@@ -102,6 +99,60 @@ function getBrandingAssetUrl(src?: string | null) {
   }
 
   return normalized
+}
+
+function getFallbackLabelLines(label: string) {
+  const words = label.trim().split(/\s+/).filter(Boolean)
+  const lines = words.length > 1 ? words.slice(0, 2) : [words[0] ?? 'PIX']
+
+  return lines.map((line) => line.toUpperCase())
+}
+
+interface BrandIconBoxProps {
+  src?: string | null
+  label: string
+  backgroundColor: string
+  foregroundColor: string
+  className?: string
+  imageClassName?: string
+}
+
+function BrandIconBox({
+  src,
+  label,
+  backgroundColor,
+  foregroundColor,
+  className = 'h-16 w-16',
+  imageClassName = 'h-10 w-10',
+}: BrandIconBoxProps) {
+  const source = getBrandingAssetUrl(src)
+  const [failedSource, setFailedSource] = useState<string | null>(null)
+  const shouldShowImage = source && failedSource !== source
+  const fallbackLines = getFallbackLabelLines(label)
+
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-white/15 ${className}`}
+      style={{ backgroundColor, color: foregroundColor }}
+    >
+      {shouldShowImage ? (
+        <img
+          src={source}
+          alt=""
+          className={`object-contain ${imageClassName}`}
+          onError={() => setFailedSource(source)}
+        />
+      ) : (
+        <span className="text-center text-xs font-bold leading-tight tracking-normal">
+          {fallbackLines.map((line) => (
+            <span key={line} className="block">
+              {line}
+            </span>
+          ))}
+        </span>
+      )}
+    </div>
+  )
 }
 
 function loadImage(src: string) {
@@ -279,11 +330,11 @@ async function createBannerCanvas(
   canvas.height = 1600
   const ctx = canvas.getContext('2d')
 
-  if (!ctx) throw new Error('Canvas indisponivel')
+  if (!ctx) throw new Error('Canvas indisponível')
 
   const primaryForegroundColor = getReadableTextColor(brand.primaryColor)
   const logoForegroundColor = getReadableTextColor(brand.logoBackgroundColor)
-  const footerMessage = `Use somente os canais oficiais da ${brand.shortName} para confirmar informacoes.`
+  const footerMessage = getOfficialChannelsMessage(brand.shortName)
 
   ctx.fillStyle = '#f8fafc'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -351,7 +402,7 @@ async function createBannerCanvas(
   ctx.textAlign = 'center'
   ctx.fillStyle = '#0f172a'
   ctx.font = '700 44px Arial'
-  ctx.fillText('Aponte a camera ou copie o codigo Pix', 540, 1288)
+  ctx.fillText('Aponte a câmera ou copie o código Pix', 540, 1288)
   ctx.fillStyle = '#475569'
   ctx.font = '400 30px Arial'
   drawCenteredText(ctx, `Identificador: ${item.identifier}`, 1344, 820, 38)
@@ -408,6 +459,14 @@ export function PublicPixPage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
   const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
+  const iconForegroundColor = getReadableTextColor(branding.iconBackgroundColor)
+  const primaryForegroundColor = getReadableTextColor(branding.theme.primaryColor)
+  const primaryMutedColor = hexToRgba(primaryForegroundColor, 0.78)
+  const accentSoftBackground = hexToRgba(branding.theme.accentColor, 0.12)
+  const accentSoftBorder = hexToRgba(branding.theme.accentColor, 0.28)
+  const accentBadgeBackground = hexToRgba(branding.theme.accentColor, 0.16)
+  const officialChannelsMessage = getOfficialChannelsMessage(branding.shortName)
+  const bannerIconUrl = branding.iconUrl ?? branding.logoDarkUrl ?? branding.logoUrl
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
@@ -476,19 +535,14 @@ export function PublicPixPage() {
     setDownloading(kind)
 
     try {
-      await downloadBanner(
-        selectedItem,
-        qrDataUrl,
-        kind,
-        {
-          iconUrl: branding.iconUrl,
-          fallbackLogoUrl: branding.logoDarkUrl ?? branding.logoUrl,
-          logoBackgroundColor: branding.iconBackgroundColor,
-          primaryColor: branding.theme.primaryColor,
-          accentColor: branding.theme.accentColor,
-          shortName: branding.shortName,
-        },
-      )
+      await downloadBanner(selectedItem, qrDataUrl, kind, {
+        iconUrl: branding.iconUrl,
+        fallbackLogoUrl: branding.logoDarkUrl ?? branding.logoUrl,
+        logoBackgroundColor: branding.iconBackgroundColor,
+        primaryColor: branding.theme.primaryColor,
+        accentColor: branding.theme.accentColor,
+        shortName: branding.shortName,
+      })
     } finally {
       setDownloading(null)
     }
@@ -501,29 +555,27 @@ export function PublicPixPage() {
           <Link
             to="/"
             className="flex min-w-0 items-center gap-3"
-            aria-label={`${branding.shortName} pagina inicial`}
+            aria-label={`${branding.shortName} página inicial`}
           >
             <div
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] border border-slate-200/70"
               style={{ backgroundColor: branding.logoBackgroundColor, color: logoForegroundColor }}
             >
-              {logo ? <img src={logo} alt="" className="h-7 w-7 object-contain" /> : <Church className="h-5 w-5" />}
+              {logo ? (
+                <img src={logo} alt="" className="h-7 w-7 object-contain" />
+              ) : (
+                <Church className="h-5 w-5" />
+              )}
             </div>
             <div className="min-w-0">
               <p className="font-display text-lg font-semibold tracking-normal text-slate-950">
                 {branding.shortName}
               </p>
-              <p className="truncate text-xs font-medium text-slate-500">Pix publico</p>
+              <p className="truncate text-xs font-medium text-slate-500">Pix público</p>
             </div>
           </Link>
 
           <div className="ml-auto hidden items-center gap-1 md:flex">
-            <Link
-              className="rounded-[8px] px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-              to="/"
-            >
-              Instituicao
-            </Link>
             <Link
               className="rounded-[8px] bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-950"
               to="/pix"
@@ -531,13 +583,6 @@ export function PublicPixPage() {
               Pix
             </Link>
           </div>
-
-          <Button asChild size="md" className="ml-auto md:ml-2">
-            <a href={adminLoginUrl}>
-              Entrar
-              <ArrowRight className="h-4 w-4" />
-            </a>
-          </Button>
         </nav>
       </header>
 
@@ -551,7 +596,7 @@ export function PublicPixPage() {
               Chaves Pix oficiais de {branding.shortName}.
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              Escolha uma finalidade, copie o codigo para usar no banco ou gere um banner com QR
+              Escolha uma finalidade, copie o código para usar no banco ou gere um banner com QR
               code.
             </p>
           </div>
@@ -575,17 +620,17 @@ export function PublicPixPage() {
           <div className="space-y-3">
             {pixQuery.isLoading && (
               <div className="rounded-[8px] border border-slate-200 bg-white p-5 text-sm text-slate-600">
-                Carregando enderecos Pix...
+                Carregando endereços Pix...
               </div>
             )}
 
             {!pixQuery.isLoading && filteredItems.length === 0 && (
               <div className="rounded-[8px] border border-slate-200 bg-white p-5">
                 <p className="text-sm font-semibold text-slate-950">
-                  Nenhum Pix publico disponivel
+                  Nenhum Pix público disponível
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Chaves expiradas ou desativadas nao aparecem nesta pagina.
+                  Chaves expiradas ou desativadas não aparecem nesta página.
                 </p>
               </div>
             )}
@@ -608,7 +653,7 @@ export function PublicPixPage() {
                     </p>
                     <p className="mt-1 text-sm text-slate-500">{item.branch.name}</p>
                   </div>
-                  <Badge variant="success">Disponivel</Badge>
+                  <Badge variant="success">Disponível</Badge>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
                   <span>#{item.identifier}</span>
@@ -627,25 +672,67 @@ export function PublicPixPage() {
                 Nenhum Pix selecionado
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Quando houver cadastros ativos e nao expirados, eles ficarao disponiveis nesta
-                pagina.
+                Quando houver cadastros ativos e não expirados, eles ficarão disponíveis nesta
+                página.
               </p>
             </div>
           )}
 
           {selectedItem && (
             <div className="overflow-hidden rounded-[8px] border border-slate-200 bg-white shadow-soft">
-              <div className="bg-slate-950 px-5 py-5 text-white sm:px-7">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className="border-white/15 bg-white/5 text-white/80">
-                    {selectedItem.identifier}
-                  </Badge>
-                  <Badge variant="success">Nao expirado</Badge>
+              <div
+                className="relative px-5 py-5 sm:px-7"
+                style={{
+                  backgroundColor: branding.theme.primaryColor,
+                  color: primaryForegroundColor,
+                }}
+              >
+                <div
+                  className="absolute bottom-0 left-0 h-1.5 w-full"
+                  style={{ backgroundColor: branding.theme.accentColor }}
+                />
+                <div className="flex items-start gap-4">
+                  <BrandIconBox
+                    src={bannerIconUrl}
+                    label={branding.shortName}
+                    backgroundColor={branding.iconBackgroundColor}
+                    foregroundColor={iconForegroundColor}
+                    className="h-16 w-16"
+                    imageClassName="h-11 w-11"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className="text-xs font-bold uppercase tracking-[0.1em]"
+                        style={{ color: branding.theme.accentColor }}
+                      >
+                        Pix identificado
+                      </span>
+                      <span
+                        className="rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em]"
+                        style={{
+                          backgroundColor: accentBadgeBackground,
+                          borderColor: accentSoftBorder,
+                          color: primaryForegroundColor,
+                        }}
+                      >
+                        Não expirado
+                      </span>
+                    </div>
+                    <h2 className="mt-3 font-display text-3xl font-semibold tracking-normal">
+                      {selectedItem.purpose}
+                    </h2>
+                    <p className="mt-2 text-sm leading-6" style={{ color: primaryMutedColor }}>
+                      {selectedItem.branch.name}
+                    </p>
+                    <p
+                      className="mt-3 text-xs font-semibold uppercase tracking-[0.12em]"
+                      style={{ color: primaryMutedColor }}
+                    >
+                      #{selectedItem.identifier}
+                    </p>
+                  </div>
                 </div>
-                <h2 className="mt-4 font-display text-3xl font-semibold tracking-normal text-white">
-                  {selectedItem.purpose}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-white/70">{selectedItem.branch.name}</p>
               </div>
 
               <div className="grid gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,0.92fr)_minmax(18rem,1.08fr)]">
@@ -661,7 +748,7 @@ export function PublicPixPage() {
 
                   <div className="rounded-[8px] border border-slate-200 bg-slate-50 p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                      Codigo copia e cola
+                      Código de cópia e cola
                     </p>
                     <textarea
                       readOnly
@@ -670,7 +757,7 @@ export function PublicPixPage() {
                     />
                     <Button type="button" onClick={handleCopy} className="mt-3 w-full">
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copied ? 'Codigo copiado' : 'Copiar codigo'}
+                      {copied ? 'Código copiado' : 'Copiar código'}
                     </Button>
                   </div>
                 </div>
@@ -689,7 +776,8 @@ export function PublicPixPage() {
                       )}
                     </div>
                     <p className="mt-4 text-sm leading-6 text-slate-600">
-                      QR code gerado a partir do codigo copia e cola cadastrado pela administracao.
+                      QR code gerado a partir do código de cópia e cola cadastrado pela
+                      administração.
                     </p>
                   </div>
 
@@ -714,12 +802,17 @@ export function PublicPixPage() {
                     </Button>
                   </div>
 
-                  <div className="rounded-[8px] border border-emerald-200 bg-emerald-50 p-4">
+                  <div
+                    className="rounded-[8px] border p-4"
+                    style={{ backgroundColor: accentSoftBackground, borderColor: accentSoftBorder }}
+                  >
                     <div className="flex items-start gap-3">
-                      <Download className="mt-0.5 h-5 w-5 text-emerald-700" />
-                      <p className="text-sm leading-6 text-emerald-900">
-                        O banner inclui a finalidade, identificador, validade e QR code centralizado
-                        para uso em tela ou impressao.
+                      <ShieldCheck
+                        className="mt-0.5 h-5 w-5 shrink-0"
+                        style={{ color: branding.theme.accentColor }}
+                      />
+                      <p className="text-sm font-semibold leading-6 text-slate-950">
+                        {officialChannelsMessage}
                       </p>
                     </div>
                   </div>
