@@ -52,7 +52,7 @@ export const defaultBranding: BrandingSettings = {
   shortName: 'MyChurch',
   slogan: 'ERP e site publico para igrejas',
   description:
-    'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.',
+    'Portanto, ide, fazei discípulos de todas as nações, batizando-os em nome do Pai, e do Filho, e do Espírito Santo. Mateus 28:19',
   legalName: null,
   document: null,
   logoUrl: null,

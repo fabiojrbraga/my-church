@@ -3,13 +3,16 @@ import { z } from 'zod'
 import { prisma, UserRole } from '@my-church/database'
 
 const BRANDING_SETTINGS_ID = 'default'
+const LEGACY_DEFAULT_DESCRIPTION =
+  'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.'
+const DEFAULT_DESCRIPTION =
+  'Portanto, ide, fazei discípulos de todas as nações, batizando-os em nome do Pai, e do Filho, e do Espírito Santo. Mateus 28:19'
 
 const defaultBranding = {
   displayName: 'MyChurch',
   shortName: 'MyChurch',
   slogan: 'ERP e site publico para igrejas',
-  description:
-    'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.',
+  description: DEFAULT_DESCRIPTION,
   primaryColor: '#2563eb',
   accentColor: '#f97316',
   sidebarColor: '#0f172a',
@@ -105,13 +108,22 @@ const brandingAssetQuerySchema = z.object({
 })
 
 async function ensureBrandingSettings() {
-  return prisma.brandingSettings.upsert({
+  const settings = await prisma.brandingSettings.upsert({
     where: { id: BRANDING_SETTINGS_ID },
     update: {},
     create: {
       id: BRANDING_SETTINGS_ID,
       ...defaultBranding,
     },
+  })
+
+  if (settings.description !== LEGACY_DEFAULT_DESCRIPTION) {
+    return settings
+  }
+
+  return prisma.brandingSettings.update({
+    where: { id: BRANDING_SETTINGS_ID },
+    data: { description: DEFAULT_DESCRIPTION },
   })
 }
 

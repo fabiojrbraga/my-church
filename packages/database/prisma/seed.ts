@@ -64,7 +64,7 @@ async function main() {
       shortName: process.env.SEED_BRAND_SHORT_NAME ?? 'MyChurch',
       slogan: 'ERP e site publico para igrejas',
       description:
-        'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.',
+        'Portanto, ide, fazei discípulos de todas as nações, batizando-os em nome do Pai, e do Filho, e do Espírito Santo. Mateus 28:19',
       publicEmail: process.env.SEED_BRANCH_EMAIL ?? 'contato@mychurch.com',
       logoBackgroundColor: '#0f172a',
       logoDarkBackgroundColor: '#1e293b',

@@ -160,7 +160,7 @@ model BrandingSettings {
   displayName      String   @default("MyChurch")
   shortName        String   @default("MyChurch")
   slogan           String?
-  description      String   @default("Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.") @db.Text
+  description      String   @default("Portanto, ide, fazei discípulos de todas as nações, batizando-os em nome do Pai, e do Filho, e do Espírito Santo. Mateus 28:19") @db.Text
   legalName        String?
   document         String?
 
