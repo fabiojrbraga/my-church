@@ -187,7 +187,7 @@ export function PublicHomePage() {
                   size="lg"
                   className="bg-white/90 text-slate-950 hover:bg-white"
                 >
-                  <a href="#em-construcao">Conhecer instituição</a>
+                  <a href="#em-construcao">Saiba mais sobre nós</a>
                 </Button>
               </div>
 
