@@ -4,7 +4,6 @@ import {
   Church,
   Clock,
   Construction,
-  FileText,
   Instagram,
   Mail,
   MapPin,
@@ -70,10 +69,6 @@ export function PublicHomePage() {
   const addressLabel = [branding.contact.addressLine, branding.contact.city, branding.contact.state]
     .filter(Boolean)
     .join(' - ')
-  const footerInstitutionItems = [
-    { label: 'Nome', value: branding.legalName ?? branding.displayName, icon: Church },
-    { label: 'CNPJ', value: branding.document, icon: FileText },
-  ]
   const footerContactItems = [
     { label: 'Endereço', value: addressLabel, icon: MapPin },
     { label: 'E-mail', value: branding.contact.publicEmail, icon: Mail },
@@ -198,9 +193,7 @@ export function PublicHomePage() {
                 className="mt-6 inline-flex max-w-xl items-start gap-3 rounded-[8px] border border-white/20 bg-white/10 px-4 py-3 text-white shadow-sm shadow-slate-950/10 backdrop-blur"
               >
                 <Construction className="mt-0.5 h-5 w-5 shrink-0" />
-                <p className="text-sm font-medium leading-6">
-                  Esta página está em construção!
-                </p>
+                <p className="text-sm font-medium leading-6">Esta página está em construção!</p>
               </div>
             </div>
           </div>
@@ -282,9 +275,9 @@ export function PublicHomePage() {
       </main>
 
       <footer className="bg-slate-950 px-4 py-10 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.15fr)]">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[minmax(18rem,0.9fr)_minmax(0,1.1fr)]">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <div
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[8px] border border-white/10"
                 style={{
@@ -300,41 +293,39 @@ export function PublicHomePage() {
               </div>
               <div className="min-w-0">
                 <p className="font-display text-xl font-semibold tracking-normal text-white">
-                  {branding.shortName}
+                  {branding.legalName ?? branding.displayName}
                 </p>
+                {branding.document && (
+                  <p className="mt-1 text-sm font-medium leading-6 text-white/60">
+                    {branding.document}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2">
-            {[
-              { title: 'Instituição', items: footerInstitutionItems },
-              { title: 'Contato', items: footerContactItems },
-            ].map((group) => (
-              <div key={group.title}>
-                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
-                  {group.title}
-                </h2>
-                <dl className="mt-4 space-y-4">
-                  {group.items.map(({ icon: Icon, label, value }) => (
-                    <div
-                      key={label}
-                      className="flex gap-3 border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
-                    >
-                      <Icon className="mt-1 h-4 w-4 shrink-0 text-white/45" />
-                      <div className="min-w-0">
-                        <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
-                          {label}
-                        </dt>
-                        <dd className="mt-1 break-words text-sm font-medium leading-6 text-white">
-                          {value || 'Não informado'}
-                        </dd>
-                      </div>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            ))}
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+              Contato
+            </h2>
+            <dl className="mt-4 grid gap-4 md:grid-cols-3">
+              {footerContactItems.map(({ icon: Icon, label, value }) => (
+                <div
+                  key={label}
+                  className="flex gap-3 border-b border-white/10 pb-4 last:border-b-0 last:pb-0 md:border-b-0 md:pb-0"
+                >
+                  <Icon className="mt-1 h-4 w-4 shrink-0 text-white/45" />
+                  <div className="min-w-0">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
+                      {label}
+                    </dt>
+                    <dd className="mt-1 break-words text-sm font-medium leading-6 text-white">
+                      {value || 'Não informado'}
+                    </dd>
+                  </div>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </footer>
