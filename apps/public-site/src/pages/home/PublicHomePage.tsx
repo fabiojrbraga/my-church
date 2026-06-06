@@ -300,9 +300,6 @@ export function PublicHomePage() {
                 <p className="font-display text-xl font-semibold tracking-normal text-white">
                   {branding.shortName}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-white/55">
-                  Informações oficiais da instituição.
-                </p>
               </div>
             </div>
           </div>
