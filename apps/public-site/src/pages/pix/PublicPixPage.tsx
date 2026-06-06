@@ -651,24 +651,43 @@ export function PublicPixPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            {pixQuery.isLoading && (
-              <div className="rounded-[8px] border border-slate-200 bg-white p-5 text-sm text-slate-600">
-                Carregando endereços Pix...
-              </div>
-            )}
+          {pixQuery.isLoading && (
+            <div className="rounded-[8px] border border-slate-200 bg-white p-5 text-sm text-slate-600">
+              Carregando endereços Pix...
+            </div>
+          )}
 
-            {!pixQuery.isLoading && filteredItems.length === 0 && (
-              <div className="rounded-[8px] border border-slate-200 bg-white p-5">
-                <p className="text-sm font-semibold text-slate-950">
-                  Nenhum Pix público disponível
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Chaves expiradas ou desativadas não aparecem nesta página.
-                </p>
-              </div>
-            )}
+          {!pixQuery.isLoading && filteredItems.length === 0 && (
+            <div className="rounded-[8px] border border-slate-200 bg-white p-5">
+              <p className="text-sm font-semibold text-slate-950">Nenhum Pix público disponível</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Chaves expiradas ou desativadas não aparecem nesta página.
+              </p>
+            </div>
+          )}
 
+          {!pixQuery.isLoading && filteredItems.length > 0 && (
+            <div className="lg:hidden">
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+                {filteredItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleSelectPix(item.identifier)}
+                    className={`max-w-[16rem] shrink-0 truncate whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                      selectedItem?.id === item.id
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-primary/30 hover:text-slate-950'
+                    }`}
+                  >
+                    {item.purpose}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="hidden space-y-3 lg:block">
             {filteredItems.map((item) => (
               <button
                 key={item.id}
