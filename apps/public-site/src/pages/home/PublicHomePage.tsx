@@ -3,7 +3,6 @@ import {
   CalendarDays,
   Church,
   Clock,
-  Construction,
   Instagram,
   Mail,
   MapPin,
@@ -184,16 +183,8 @@ export function PublicHomePage() {
                   size="lg"
                   className="bg-white/90 text-slate-950 hover:bg-white"
                 >
-                  <a href="#em-construcao">Saiba mais sobre nós</a>
+                  <a href="#horarios-canais">Saiba mais sobre nós</a>
                 </Button>
-              </div>
-
-              <div
-                id="em-construcao"
-                className="mt-6 inline-flex max-w-xl items-start gap-3 rounded-[8px] border border-white/20 bg-white/10 px-4 py-3 text-white shadow-sm shadow-slate-950/10 backdrop-blur"
-              >
-                <Construction className="mt-0.5 h-5 w-5 shrink-0" />
-                <p className="text-sm font-medium leading-6">Esta página está em construção!</p>
               </div>
             </div>
           </div>
