@@ -84,11 +84,13 @@ export function PublicHomePage() {
       label: 'YouTube',
       href: branding.contact.youtubeUrl,
       icon: Youtube,
+      iconClassName: 'text-[#FF0000]',
     },
     {
       label: 'Instagram',
       href: branding.contact.instagramUrl,
       icon: Instagram,
+      iconClassName: 'text-[#E4405F]',
     },
     {
       label: 'WhatsApp',
