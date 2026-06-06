@@ -668,13 +668,13 @@ export function PublicPixPage() {
 
           {!pixQuery.isLoading && filteredItems.length > 0 && (
             <div className="lg:hidden">
-              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+              <div className="flex max-w-full flex-wrap gap-2">
                 {filteredItems.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => handleSelectPix(item.identifier)}
-                    className={`max-w-[16rem] shrink-0 truncate whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                    className={`min-w-0 max-w-full truncate whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                       selectedItem?.id === item.id
                         ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-primary/30 hover:text-slate-950'
