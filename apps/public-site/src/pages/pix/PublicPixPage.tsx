@@ -2,7 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import QRCode from 'qrcode'
-import { Check, Church, Copy, FileImage, FileText, QrCode, Search, ShieldCheck } from 'lucide-react'
+import {
+  ArrowUp,
+  Check,
+  Church,
+  Copy,
+  FileImage,
+  FileText,
+  QrCode,
+  Search,
+  ShieldCheck,
+} from 'lucide-react'
 import { api } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -535,6 +545,8 @@ export function PublicPixPage() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState<DownloadKind | null>(null)
+  const [showMobileTopButton, setShowMobileTopButton] = useState(false)
+  const pixOptionsRef = useRef<HTMLElement | null>(null)
   const detailPanelRef = useRef<HTMLElement | null>(null)
   const shouldScrollInitialQueryRef = useRef(searchParams.has('chave'))
   const hasScrolledInitialQueryRef = useRef(false)
@@ -565,6 +577,7 @@ export function PublicPixPage() {
     filteredItems[0] ??
     items[0] ??
     null
+  const hasAlternativePix = items.length > 1
 
   function scrollToDetailsOnMobile(behavior: ScrollBehavior = 'smooth') {
     if (!isMobileViewport()) return
@@ -593,6 +606,27 @@ export function PublicPixPage() {
     hasScrolledInitialQueryRef.current = true
     scrollToDetailsOnMobile('auto')
   }, [selectedIdentifier, selectedItem])
+
+  useEffect(() => {
+    function updateMobileTopButtonVisibility() {
+      if (!isMobileViewport() || !hasAlternativePix) {
+        setShowMobileTopButton(false)
+        return
+      }
+
+      const optionsBottom = pixOptionsRef.current?.getBoundingClientRect().bottom ?? 0
+      setShowMobileTopButton(optionsBottom < 80)
+    }
+
+    updateMobileTopButtonVisibility()
+    window.addEventListener('scroll', updateMobileTopButtonVisibility, { passive: true })
+    window.addEventListener('resize', updateMobileTopButtonVisibility)
+
+    return () => {
+      window.removeEventListener('scroll', updateMobileTopButtonVisibility)
+      window.removeEventListener('resize', updateMobileTopButtonVisibility)
+    }
+  }, [hasAlternativePix])
 
   useEffect(() => {
     let isMounted = true
@@ -636,6 +670,10 @@ export function PublicPixPage() {
   function handleSelectPix(identifier: string) {
     setSearchParams({ chave: identifier })
     scrollToDetailsOnMobile()
+  }
+
+  function handleBackToPixOptions() {
+    pixOptionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   async function handleDownload(kind: DownloadKind) {
@@ -695,8 +733,8 @@ export function PublicPixPage() {
         </nav>
       </header>
 
-      <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] lg:px-8">
-        <section className="space-y-6">
+      <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-28 pt-8 sm:px-6 lg:grid-cols-[minmax(18rem,0.8fr)_minmax(0,1.2fr)] lg:px-8 lg:pb-8">
+        <section ref={pixOptionsRef} className="scroll-mt-24 space-y-6">
           <div>
             <Badge variant="success" className="w-fit">
               Pix identificado
@@ -950,6 +988,20 @@ export function PublicPixPage() {
           )}
         </section>
       </main>
+
+      {hasAlternativePix && showMobileTopButton && (
+        <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 lg:hidden">
+          <Button
+            type="button"
+            onClick={handleBackToPixOptions}
+            className="shadow-2xl shadow-slate-950/25"
+            aria-label="Voltar ao topo para escolher outro Pix"
+          >
+            <ArrowUp className="h-4 w-4" />
+            Voltar ao topo
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
