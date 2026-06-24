@@ -801,7 +801,7 @@ export function PublicPixPage() {
               >
                 {items.map((item) => (
                   <option key={item.id} value={item.identifier}>
-                    {item.purpose} - {item.branch.name}
+                    {item.purpose}
                   </option>
                 ))}
               </select>
