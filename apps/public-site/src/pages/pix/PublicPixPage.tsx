@@ -740,7 +740,7 @@ export function PublicPixPage() {
               Pix identificado
             </Badge>
             <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-normal text-slate-950 sm:text-5xl">
-              Chaves Pix oficiais de {branding.shortName}.
+              Chaves Pix oficiais
             </h1>
             <p className="mt-4 hidden text-base leading-7 text-slate-600 sm:block">
               Escolha uma finalidade, copie o código para usar no banco ou gere um banner com QR
