@@ -24,6 +24,7 @@ import { api } from '@/lib/api'
 import {
   buildStaticPixCopyPasteCode,
   PixPayloadError,
+  STATIC_PIX_FIELD_LIMITS,
   type StaticPixKeyType,
 } from '@/lib/pixPayload'
 import { useAuthStore } from '@/stores/auth.store'
@@ -37,6 +38,11 @@ import { Textarea } from '@/components/ui/textarea'
 
 type PixFilterStatus = 'all' | 'active' | 'inactive' | 'expired' | 'public'
 type FeedbackMessage = { type: 'success' | 'error'; message: string }
+
+const PIX_FORM_LIMITS = {
+  identifier: 40,
+  purpose: 120,
+} as const
 
 interface BranchOption {
   id: string
@@ -72,13 +78,13 @@ const pixFormSchema = z.object({
     .string()
     .trim()
     .min(3, 'Use ao menos 3 caracteres')
-    .max(40, 'Use no maximo 40 caracteres')
+    .max(PIX_FORM_LIMITS.identifier, 'Use no maximo 40 caracteres')
     .regex(/^[a-z0-9]+$/, 'Use apenas letras minusculas e numeros'),
   purpose: z
     .string()
     .trim()
     .min(2, 'Informe a finalidade')
-    .max(120, 'Use no maximo 120 caracteres'),
+    .max(PIX_FORM_LIMITS.purpose, 'Use no maximo 120 caracteres'),
   copyPasteCode: z.string().trim().min(10, 'Informe o codigo copia e cola'),
   expiresAt: z.string().optional(),
   logoUrl: z
@@ -101,11 +107,30 @@ const pixKeyTypeOptions: { value: StaticPixKeyType; label: string }[] = [
 
 const pixGeneratorSchema = z.object({
   keyType: z.enum(pixKeyTypeValues),
-  pixKey: z.string().trim().min(1, 'Informe a chave Pix'),
-  merchantName: z.string().trim().min(2, 'Informe o nome do recebedor'),
-  merchantCity: z.string().trim().min(2, 'Informe a cidade'),
-  amount: z.string().optional(),
-  txid: z.string().optional(),
+  pixKey: z
+    .string()
+    .trim()
+    .min(1, 'Informe a chave Pix')
+    .max(STATIC_PIX_FIELD_LIMITS.pixKey, 'Use no maximo 77 caracteres'),
+  merchantName: z
+    .string()
+    .trim()
+    .min(2, 'Informe o nome do recebedor')
+    .max(STATIC_PIX_FIELD_LIMITS.merchantName, 'Use no maximo 25 caracteres'),
+  merchantCity: z
+    .string()
+    .trim()
+    .min(2, 'Informe a cidade')
+    .max(STATIC_PIX_FIELD_LIMITS.merchantCity, 'Use no maximo 15 caracteres'),
+  amount: z
+    .string()
+    .max(STATIC_PIX_FIELD_LIMITS.amountInput, 'Use no maximo 13 caracteres')
+    .optional(),
+  txid: z.string().max(STATIC_PIX_FIELD_LIMITS.txid, 'Use no maximo 25 caracteres').optional(),
+  description: z
+    .string()
+    .max(STATIC_PIX_FIELD_LIMITS.description, 'Use no maximo 72 caracteres')
+    .optional(),
 })
 
 type PixGeneratorFormValues = z.infer<typeof pixGeneratorSchema>
@@ -126,6 +151,7 @@ const pixGeneratorDefaultValues: PixGeneratorFormValues = {
   merchantCity: '',
   amount: '',
   txid: '',
+  description: '',
 }
 
 function getErrorMessage(error: unknown) {
@@ -721,6 +747,7 @@ export function PixAddressesPage() {
                       error={!!generatorErrors.pixKey}
                       placeholder="11223344556"
                       autoCapitalize="none"
+                      maxLength={STATIC_PIX_FIELD_LIMITS.pixKey}
                     />
                     {generatorErrors.pixKey && (
                       <p className="text-xs text-destructive">{generatorErrors.pixKey.message}</p>
@@ -734,6 +761,7 @@ export function PixAddressesPage() {
                       {...registerGenerator('merchantName')}
                       error={!!generatorErrors.merchantName}
                       placeholder="Igreja Exemplo"
+                      maxLength={STATIC_PIX_FIELD_LIMITS.merchantName}
                     />
                     {generatorErrors.merchantName && (
                       <p className="text-xs text-destructive">
@@ -749,6 +777,7 @@ export function PixAddressesPage() {
                       {...registerGenerator('merchantCity')}
                       error={!!generatorErrors.merchantCity}
                       placeholder="Sao Paulo"
+                      maxLength={STATIC_PIX_FIELD_LIMITS.merchantCity}
                     />
                     {generatorErrors.merchantCity && (
                       <p className="text-xs text-destructive">
@@ -764,17 +793,42 @@ export function PixAddressesPage() {
                       {...registerGenerator('amount')}
                       placeholder="25,75"
                       inputMode="decimal"
+                      maxLength={STATIC_PIX_FIELD_LIMITS.amountInput}
                     />
+                    {generatorErrors.amount && (
+                      <p className="text-xs text-destructive">{generatorErrors.amount.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="pix-generator-txid">TXID</Label>
+                    <Label htmlFor="pix-generator-txid">Identificador (TXID)</Label>
                     <Input
                       id="pix-generator-txid"
                       {...registerGenerator('txid')}
                       placeholder="***"
                       autoCapitalize="characters"
+                      maxLength={STATIC_PIX_FIELD_LIMITS.txid}
                     />
+                    {generatorErrors.txid && (
+                      <p className="text-xs text-destructive">{generatorErrors.txid.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="pix-generator-description">Descricao</Label>
+                    <Textarea
+                      id="pix-generator-description"
+                      {...registerGenerator('description')}
+                      error={!!generatorErrors.description}
+                      placeholder="Dizimos e ofertas"
+                      maxLength={STATIC_PIX_FIELD_LIMITS.description}
+                      className="min-h-24"
+                    />
+                    {generatorErrors.description && (
+                      <p className="text-xs text-destructive">
+                        {generatorErrors.description.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -809,6 +863,9 @@ export function PixAddressesPage() {
                     <p className="text-xs leading-5 text-muted-foreground">
                       Recebedor: {generatedPix.normalized.merchantName} - Cidade:{' '}
                       {generatedPix.normalized.merchantCity} - TXID: {generatedPix.normalized.txid}
+                      {generatedPix.normalized.description
+                        ? ` - Descricao: ${generatedPix.normalized.description}`
+                        : ''}
                     </p>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Button type="button" onClick={handleUseGeneratedPixCode}>
@@ -839,6 +896,7 @@ export function PixAddressesPage() {
                     error={!!errors.identifier}
                     placeholder="dizimo2026"
                     autoCapitalize="none"
+                    maxLength={PIX_FORM_LIMITS.identifier}
                   />
                   {errors.identifier && (
                     <p className="text-xs text-destructive">{errors.identifier.message}</p>
@@ -852,6 +910,7 @@ export function PixAddressesPage() {
                     {...register('purpose')}
                     error={!!errors.purpose}
                     placeholder="Dizimos e ofertas"
+                    maxLength={PIX_FORM_LIMITS.purpose}
                   />
                   {errors.purpose && (
                     <p className="text-xs text-destructive">{errors.purpose.message}</p>

@@ -1,5 +1,15 @@
 export type StaticPixKeyType = 'cpf' | 'cnpj' | 'phone' | 'email' | 'random'
 
+export const STATIC_PIX_FIELD_LIMITS = {
+  pixKey: 77,
+  merchantName: 25,
+  merchantCity: 15,
+  txid: 25,
+  description: 72,
+  additionalData: 99,
+  amountInput: 13,
+} as const
+
 export interface StaticPixPayloadInput {
   keyType: StaticPixKeyType
   pixKey: string
@@ -7,6 +17,7 @@ export interface StaticPixPayloadInput {
   merchantCity: string
   amount?: string
   txid?: string
+  description?: string
 }
 
 export interface StaticPixPayloadResult {
@@ -17,6 +28,7 @@ export interface StaticPixPayloadResult {
     merchantCity: string
     amount?: string
     txid: string
+    description?: string
   }
 }
 
@@ -49,6 +61,18 @@ function normalizeAsciiText(value: string, maxLength: number, fieldName: string)
   }
 
   return normalized
+}
+
+function normalizeOptionalAsciiText(
+  value: string | undefined,
+  maxLength: number,
+  fieldName: string,
+) {
+  const trimmed = value?.trim()
+
+  if (!trimmed) return undefined
+
+  return normalizeAsciiText(trimmed, maxLength, fieldName)
 }
 
 function ensurePrintableAscii(value: string, fieldName: string) {
@@ -146,8 +170,10 @@ function normalizeTxid(value?: string) {
 
   if (normalized === '***') return normalized
 
-  if (!/^[A-Za-z0-9]{1,25}$/.test(normalized)) {
-    throw new PixPayloadError('TXID deve ter ate 25 caracteres alfanumericos.')
+  if (!new RegExp(`^[A-Za-z0-9]{1,${STATIC_PIX_FIELD_LIMITS.txid}}$`).test(normalized)) {
+    throw new PixPayloadError(
+      `Identificador deve ter ate ${STATIC_PIX_FIELD_LIMITS.txid} caracteres alfanumericos.`,
+    )
   }
 
   return normalized
@@ -182,17 +208,41 @@ function crc16CcittFalse(payload: string) {
 
 export function buildStaticPixCopyPasteCode(input: StaticPixPayloadInput): StaticPixPayloadResult {
   const pixKey = normalizePixKey(input)
-  const merchantName = normalizeAsciiText(input.merchantName, 25, 'Nome do recebedor')
-  const merchantCity = normalizeAsciiText(input.merchantCity, 15, 'Cidade')
+  const merchantName = normalizeAsciiText(
+    input.merchantName,
+    STATIC_PIX_FIELD_LIMITS.merchantName,
+    'Nome do recebedor',
+  )
+  const merchantCity = normalizeAsciiText(
+    input.merchantCity,
+    STATIC_PIX_FIELD_LIMITS.merchantCity,
+    'Cidade',
+  )
   const amount = normalizeAmount(input.amount)
   const txid = normalizeTxid(input.txid)
+  const description = normalizeOptionalAsciiText(
+    input.description,
+    STATIC_PIX_FIELD_LIMITS.description,
+    'Descricao',
+  )
 
-  if (pixKey.length > 77) {
-    throw new PixPayloadError('Chave Pix deve ter no maximo 77 caracteres.')
+  if (pixKey.length > STATIC_PIX_FIELD_LIMITS.pixKey) {
+    throw new PixPayloadError(
+      `Chave Pix deve ter no maximo ${STATIC_PIX_FIELD_LIMITS.pixKey} caracteres.`,
+    )
   }
 
   const merchantAccount = emvField('00', 'BR.GOV.BCB.PIX') + emvField('01', pixKey)
-  const additionalData = emvField('05', txid)
+  const additionalData = [
+    description ? emvField('02', description) : '',
+    emvField('05', txid),
+  ].join('')
+
+  if (additionalData.length > STATIC_PIX_FIELD_LIMITS.additionalData) {
+    throw new PixPayloadError(
+      'Descricao e identificador juntos excedem o limite do campo adicional Pix.',
+    )
+  }
 
   const payloadWithoutCrc = [
     emvField('00', '01'),
@@ -218,6 +268,7 @@ export function buildStaticPixCopyPasteCode(input: StaticPixPayloadInput): Stati
       merchantCity,
       amount,
       txid,
+      description,
     },
   }
 }
