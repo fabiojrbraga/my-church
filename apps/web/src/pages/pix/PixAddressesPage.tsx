@@ -7,17 +7,25 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarClock,
   CheckCircle2,
+  ClipboardCheck,
   Copy,
   Eye,
+  KeyRound,
   Plus,
   Power,
   QrCode,
   RefreshCcw,
   Save,
   Search,
+  Sparkles,
   Trash2,
 } from 'lucide-react'
 import { api } from '@/lib/api'
+import {
+  buildStaticPixCopyPasteCode,
+  PixPayloadError,
+  type StaticPixKeyType,
+} from '@/lib/pixPayload'
 import { useAuthStore } from '@/stores/auth.store'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,6 +36,7 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 type PixFilterStatus = 'all' | 'active' | 'inactive' | 'expired' | 'public'
+type FeedbackMessage = { type: 'success' | 'error'; message: string }
 
 interface BranchOption {
   id: string
@@ -80,6 +89,27 @@ const pixFormSchema = z.object({
 
 type PixFormValues = z.infer<typeof pixFormSchema>
 
+const pixKeyTypeValues = ['cpf', 'cnpj', 'phone', 'email', 'random'] as const
+
+const pixKeyTypeOptions: { value: StaticPixKeyType; label: string }[] = [
+  { value: 'cpf', label: 'CPF' },
+  { value: 'cnpj', label: 'CNPJ' },
+  { value: 'phone', label: 'Telefone' },
+  { value: 'email', label: 'E-mail' },
+  { value: 'random', label: 'Chave aleatoria' },
+]
+
+const pixGeneratorSchema = z.object({
+  keyType: z.enum(pixKeyTypeValues),
+  pixKey: z.string().trim().min(1, 'Informe a chave Pix'),
+  merchantName: z.string().trim().min(2, 'Informe o nome do recebedor'),
+  merchantCity: z.string().trim().min(2, 'Informe a cidade'),
+  amount: z.string().optional(),
+  txid: z.string().optional(),
+})
+
+type PixGeneratorFormValues = z.infer<typeof pixGeneratorSchema>
+
 const defaultValues: PixFormValues = {
   branchId: '',
   identifier: '',
@@ -87,6 +117,15 @@ const defaultValues: PixFormValues = {
   copyPasteCode: '',
   expiresAt: '',
   logoUrl: '',
+}
+
+const pixGeneratorDefaultValues: PixGeneratorFormValues = {
+  keyType: 'cpf',
+  pixKey: '',
+  merchantName: '',
+  merchantCity: '',
+  amount: '',
+  txid: '',
 }
 
 function getErrorMessage(error: unknown) {
@@ -116,6 +155,12 @@ function formatDateInput(value: string | null | undefined) {
   if (!value) return ''
 
   return new Date(value).toISOString().slice(0, 10)
+}
+
+function formatAmountLabel(value?: string) {
+  if (!value) return 'Valor em aberto'
+
+  return `R$ ${value.replace('.', ',')}`
 }
 
 function buildPayload(values: PixFormValues) {
@@ -160,19 +205,32 @@ export function PixAddressesPage() {
     status: 'all',
     branchId: '',
   })
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
-    null,
-  )
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null)
+  const [generatorFeedback, setGeneratorFeedback] = useState<FeedbackMessage | null>(null)
+  const [generatedPix, setGeneratedPix] = useState<ReturnType<
+    typeof buildStaticPixCopyPasteCode
+  > | null>(null)
   const deferredSearch = useDeferredValue(filters.search)
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<PixFormValues>({
     resolver: zodResolver(pixFormSchema),
     defaultValues,
+  })
+
+  const {
+    register: registerGenerator,
+    handleSubmit: handleGeneratorSubmit,
+    reset: resetGenerator,
+    formState: { errors: generatorErrors },
+  } = useForm<PixGeneratorFormValues>({
+    resolver: zodResolver(pixGeneratorSchema),
+    defaultValues: pixGeneratorDefaultValues,
   })
 
   const pixQuery = useQuery({
@@ -287,6 +345,53 @@ export function PixAddressesPage() {
     setSelectedPixId(null)
     setFeedback(null)
     reset(defaultValues)
+  }
+
+  function handleGenerateStaticPixCode(values: PixGeneratorFormValues) {
+    try {
+      const result = buildStaticPixCopyPasteCode(values)
+
+      setGeneratedPix(result)
+      setGeneratorFeedback({ type: 'success', message: 'Codigo Pix estatico gerado.' })
+    } catch (error) {
+      setGeneratedPix(null)
+      setGeneratorFeedback({
+        type: 'error',
+        message:
+          error instanceof PixPayloadError ? error.message : 'Nao foi possivel gerar o codigo Pix.',
+      })
+    }
+  }
+
+  function handleUseGeneratedPixCode() {
+    if (!generatedPix) return
+
+    setValue('copyPasteCode', generatedPix.code, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    })
+    setFeedback({ type: 'success', message: 'Codigo gerado incluido no cadastro.' })
+  }
+
+  async function handleCopyGeneratedPixCode() {
+    if (!generatedPix) return
+
+    try {
+      await navigator.clipboard.writeText(generatedPix.code)
+      setGeneratorFeedback({ type: 'success', message: 'Codigo gerado copiado.' })
+    } catch {
+      setGeneratorFeedback({
+        type: 'error',
+        message: 'Nao foi possivel copiar o codigo automaticamente.',
+      })
+    }
+  }
+
+  function handleResetGenerator() {
+    resetGenerator(pixGeneratorDefaultValues)
+    setGeneratedPix(null)
+    setGeneratorFeedback(null)
   }
 
   function handleToggleStatus() {
@@ -568,6 +673,156 @@ export function PixAddressesPage() {
                   {feedback.message}
                 </div>
               )}
+
+              <div className="surface-subtle space-y-4 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <KeyRound className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">
+                      Gerador Pix copia e cola estatico
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Payload BR Code estatico com TLV, TXID e CRC16/CCITT-FALSE.
+                    </p>
+                  </div>
+                </div>
+
+                {generatorFeedback && (
+                  <div
+                    className={`rounded-[1rem] border px-3 py-2 text-sm ${
+                      generatorFeedback.type === 'success'
+                        ? 'border-success/20 bg-success/10 text-success'
+                        : 'border-destructive/20 bg-destructive/10 text-destructive'
+                    }`}
+                  >
+                    {generatorFeedback.message}
+                  </div>
+                )}
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="pix-generator-key-type">Tipo da chave</Label>
+                    <Select id="pix-generator-key-type" {...registerGenerator('keyType')}>
+                      {pixKeyTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pix-generator-key">Chave Pix</Label>
+                    <Input
+                      id="pix-generator-key"
+                      {...registerGenerator('pixKey')}
+                      error={!!generatorErrors.pixKey}
+                      placeholder="11223344556"
+                      autoCapitalize="none"
+                    />
+                    {generatorErrors.pixKey && (
+                      <p className="text-xs text-destructive">{generatorErrors.pixKey.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pix-generator-name">Nome do recebedor</Label>
+                    <Input
+                      id="pix-generator-name"
+                      {...registerGenerator('merchantName')}
+                      error={!!generatorErrors.merchantName}
+                      placeholder="Igreja Exemplo"
+                    />
+                    {generatorErrors.merchantName && (
+                      <p className="text-xs text-destructive">
+                        {generatorErrors.merchantName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pix-generator-city">Cidade</Label>
+                    <Input
+                      id="pix-generator-city"
+                      {...registerGenerator('merchantCity')}
+                      error={!!generatorErrors.merchantCity}
+                      placeholder="Sao Paulo"
+                    />
+                    {generatorErrors.merchantCity && (
+                      <p className="text-xs text-destructive">
+                        {generatorErrors.merchantCity.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pix-generator-amount">Valor fixo</Label>
+                    <Input
+                      id="pix-generator-amount"
+                      {...registerGenerator('amount')}
+                      placeholder="25,75"
+                      inputMode="decimal"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pix-generator-txid">TXID</Label>
+                    <Input
+                      id="pix-generator-txid"
+                      {...registerGenerator('txid')}
+                      placeholder="***"
+                      autoCapitalize="characters"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    type="button"
+                    variant="soft"
+                    onClick={handleGeneratorSubmit(handleGenerateStaticPixCode)}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Gerar codigo
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleResetGenerator}>
+                    <RefreshCcw className="h-4 w-4" />
+                    Limpar
+                  </Button>
+                </div>
+
+                {generatedPix && (
+                  <div className="space-y-3 rounded-[1rem] border border-border/60 bg-surface p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-foreground">Codigo gerado</p>
+                      <Badge variant="outline">
+                        {formatAmountLabel(generatedPix.normalized.amount)}
+                      </Badge>
+                    </div>
+                    <Textarea
+                      readOnly
+                      value={generatedPix.code}
+                      className="min-h-28 font-mono text-xs leading-5"
+                    />
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Recebedor: {generatedPix.normalized.merchantName} - Cidade:{' '}
+                      {generatedPix.normalized.merchantCity} - TXID: {generatedPix.normalized.txid}
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Button type="button" onClick={handleUseGeneratedPixCode}>
+                        <ClipboardCheck className="h-4 w-4" />
+                        Incluir no cadastro
+                      </Button>
+                      <Button type="button" variant="outline" onClick={handleCopyGeneratedPixCode}>
+                        <Copy className="h-4 w-4" />
+                        Copiar codigo
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <form
                 className="space-y-5"
