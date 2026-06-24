@@ -40,6 +40,13 @@ interface PixBannerBrandOptions {
   shortName: string
 }
 
+interface PixQrBrandOptions {
+  iconUrl?: string | null
+  fallbackLogoUrl?: string | null
+  logoBackgroundColor: string
+  shortName: string
+}
+
 function formatExpiration(value: string | null) {
   if (!value) return 'Sem data de expiração'
 
@@ -423,16 +430,65 @@ async function createBannerCanvas(
   return canvas
 }
 
-async function generateQrDataUrl(code: string) {
-  return QRCode.toDataURL(code, {
+async function generateQrDataUrl(code: string, brand: PixQrBrandOptions) {
+  const qrDataUrl = await QRCode.toDataURL(code, {
     width: 640,
     margin: 2,
-    errorCorrectionLevel: 'M',
+    errorCorrectionLevel: 'H',
     color: {
       dark: '#0f172a',
       light: '#ffffff',
     },
   })
+
+  const canvas = document.createElement('canvas')
+  canvas.width = 640
+  canvas.height = 640
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) return qrDataUrl
+
+  const qrImage = await loadImage(qrDataUrl)
+  ctx.drawImage(qrImage, 0, 0, canvas.width, canvas.height)
+
+  const logoSize = 118
+  const logoX = (canvas.width - logoSize) / 2
+  const logoY = (canvas.height - logoSize) / 2
+  const logo = await loadFirstAvailableImage([
+    { src: brand.iconUrl, useBrandingProxy: true },
+    { src: brand.fallbackLogoUrl, useBrandingProxy: true },
+  ])
+
+  ctx.save()
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath()
+  ctx.roundRect(logoX - 12, logoY - 12, logoSize + 24, logoSize + 24, 28)
+  ctx.fill()
+
+  if (logo) {
+    ctx.fillStyle = brand.logoBackgroundColor
+    ctx.beginPath()
+    ctx.roundRect(logoX, logoY, logoSize, logoSize, 22)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.roundRect(logoX, logoY, logoSize, logoSize, 22)
+    ctx.clip()
+    drawContainedImage(ctx, logo, logoX, logoY, logoSize, 16)
+  } else {
+    drawLogoFallback(
+      ctx,
+      brand.shortName,
+      logoX,
+      logoY,
+      logoSize,
+      brand.logoBackgroundColor,
+      getReadableTextColor(brand.logoBackgroundColor),
+    )
+  }
+
+  ctx.restore()
+
+  return canvas.toDataURL('image/png')
 }
 
 async function downloadBanner(
@@ -541,14 +597,26 @@ export function PublicPixPage() {
 
     if (!selectedItem) return
 
-    generateQrDataUrl(selectedItem.copyPasteCode).then((dataUrl) => {
+    generateQrDataUrl(selectedItem.copyPasteCode, {
+      iconUrl: bannerIconUrl,
+      fallbackLogoUrl: branding.logoDarkUrl ?? branding.logoUrl,
+      logoBackgroundColor: branding.iconBackgroundColor,
+      shortName: branding.shortName,
+    }).then((dataUrl) => {
       if (isMounted) setQrDataUrl(dataUrl)
     })
 
     return () => {
       isMounted = false
     }
-  }, [selectedItem])
+  }, [
+    bannerIconUrl,
+    branding.iconBackgroundColor,
+    branding.logoDarkUrl,
+    branding.logoUrl,
+    branding.shortName,
+    selectedItem,
+  ])
 
   async function handleCopy() {
     if (!selectedItem) return
