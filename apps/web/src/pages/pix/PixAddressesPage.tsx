@@ -145,10 +145,10 @@ const defaultValues: PixFormValues = {
 }
 
 const pixGeneratorDefaultValues: PixGeneratorFormValues = {
-  keyType: 'cpf',
-  pixKey: '',
-  merchantName: '',
-  merchantCity: '',
+  keyType: 'cnpj',
+  pixKey: '36387579000134',
+  merchantName: 'PIB SMJ',
+  merchantCity: 'SANTA MAJETIBA',
   amount: '',
   txid: '',
   description: '',
