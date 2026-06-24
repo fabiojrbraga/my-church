@@ -60,6 +60,7 @@ interface PixAddressRecord {
   expiresAt: string | null
   logoUrl: string | null
   effectiveLogoUrl: string | null
+  showLogoInQrCode: boolean
   isActive: boolean
   isExpired: boolean
   isPubliclyVisible: boolean
@@ -91,6 +92,7 @@ const pixFormSchema = z.object({
     .string()
     .optional()
     .refine((value) => !value || /^https?:\/\//i.test(value), 'Informe uma URL valida'),
+  showLogoInQrCode: z.boolean(),
 })
 
 type PixFormValues = z.infer<typeof pixFormSchema>
@@ -142,6 +144,7 @@ const defaultValues: PixFormValues = {
   copyPasteCode: '',
   expiresAt: '',
   logoUrl: '',
+  showLogoInQrCode: true,
 }
 
 const pixGeneratorDefaultValues: PixGeneratorFormValues = {
@@ -197,6 +200,7 @@ function buildPayload(values: PixFormValues) {
     copyPasteCode: values.copyPasteCode.trim(),
     expiresAt: normalizeOptional(values.expiresAt),
     logoUrl: normalizeOptional(values.logoUrl),
+    showLogoInQrCode: values.showLogoInQrCode,
   }
 }
 
@@ -208,6 +212,7 @@ function mapPixToFormValues(item: PixAddressRecord): PixFormValues {
     copyPasteCode: item.copyPasteCode,
     expiresAt: formatDateInput(item.expiresAt),
     logoUrl: item.logoUrl ?? '',
+    showLogoInQrCode: item.showLogoInQrCode,
   }
 }
 
@@ -948,6 +953,26 @@ export function PixAddressesPage() {
                     <p className="text-xs text-destructive">{errors.logoUrl.message}</p>
                   )}
                 </div>
+
+                <label
+                  htmlFor="pix-show-logo-in-qr-code"
+                  className="surface-subtle flex cursor-pointer items-start gap-3 p-4"
+                >
+                  <input
+                    id="pix-show-logo-in-qr-code"
+                    type="checkbox"
+                    {...register('showLogoInQrCode')}
+                    className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary/30"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-foreground">
+                      Imprimir QR code com icone no centro
+                    </span>
+                    <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                      A opcao afeta a pagina publica e os banners baixados em PDF ou JPG.
+                    </span>
+                  </span>
+                </label>
 
                 <div className="space-y-2">
                   <Label htmlFor="pix-copy-code">Codigo copia e cola</Label>

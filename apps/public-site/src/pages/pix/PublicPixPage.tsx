@@ -19,6 +19,7 @@ interface PixAddressPublicRecord {
   expiresAt: string | null
   logoUrl: string | null
   effectiveLogoUrl: string | null
+  showLogoInQrCode: boolean
   isActive: boolean
   isExpired: boolean
   isPubliclyVisible: boolean
@@ -430,7 +431,7 @@ async function createBannerCanvas(
   return canvas
 }
 
-async function generateQrDataUrl(code: string, brand: PixQrBrandOptions) {
+async function generateQrDataUrl(code: string, brand?: PixQrBrandOptions) {
   const qrDataUrl = await QRCode.toDataURL(code, {
     width: 640,
     margin: 2,
@@ -440,6 +441,8 @@ async function generateQrDataUrl(code: string, brand: PixQrBrandOptions) {
       light: '#ffffff',
     },
   })
+
+  if (!brand) return qrDataUrl
 
   const canvas = document.createElement('canvas')
   canvas.width = 640
@@ -597,12 +600,16 @@ export function PublicPixPage() {
 
     if (!selectedItem) return
 
-    generateQrDataUrl(selectedItem.copyPasteCode, {
-      iconUrl: bannerIconUrl,
-      fallbackLogoUrl: branding.logoDarkUrl ?? branding.logoUrl,
-      logoBackgroundColor: branding.iconBackgroundColor,
-      shortName: branding.shortName,
-    }).then((dataUrl) => {
+    const qrBrand = selectedItem.showLogoInQrCode
+      ? {
+          iconUrl: bannerIconUrl,
+          fallbackLogoUrl: branding.logoDarkUrl ?? branding.logoUrl,
+          logoBackgroundColor: branding.iconBackgroundColor,
+          shortName: branding.shortName,
+        }
+      : undefined
+
+    generateQrDataUrl(selectedItem.copyPasteCode, qrBrand).then((dataUrl) => {
       if (isMounted) setQrDataUrl(dataUrl)
     })
 
