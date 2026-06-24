@@ -748,7 +748,7 @@ export function PublicPixPage() {
             </p>
           </div>
 
-          <div className="rounded-[8px] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5">
+          <div className="hidden rounded-[8px] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5 lg:block">
             <label htmlFor="search-pix" className="text-sm font-semibold text-slate-700">
               Buscar Pix
             </label>
@@ -770,7 +770,7 @@ export function PublicPixPage() {
             </div>
           )}
 
-          {!pixQuery.isLoading && filteredItems.length === 0 && (
+          {!pixQuery.isLoading && items.length === 0 && (
             <div className="rounded-[8px] border border-slate-200 bg-white p-5">
               <p className="text-sm font-semibold text-slate-950">Nenhum Pix público disponível</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -779,24 +779,32 @@ export function PublicPixPage() {
             </div>
           )}
 
-          {!pixQuery.isLoading && filteredItems.length > 0 && (
-            <div className="lg:hidden">
-              <div className="flex max-w-full flex-wrap gap-2">
-                {filteredItems.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleSelectPix(item.identifier)}
-                    className={`min-w-0 max-w-full truncate whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                      selectedItem?.id === item.id
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-primary/30 hover:text-slate-950'
-                    }`}
-                  >
-                    {item.purpose}
-                  </button>
+          {!pixQuery.isLoading && items.length > 0 && filteredItems.length === 0 && (
+            <div className="hidden rounded-[8px] border border-slate-200 bg-white p-5 lg:block">
+              <p className="text-sm font-semibold text-slate-950">Nenhum Pix encontrado</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Tente buscar por outra finalidade, identificador ou unidade.
+              </p>
+            </div>
+          )}
+
+          {!pixQuery.isLoading && items.length > 0 && (
+            <div className="rounded-[8px] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5 lg:hidden">
+              <label htmlFor="mobile-pix-select" className="text-sm font-semibold text-slate-700">
+                Escolher chave Pix
+              </label>
+              <select
+                id="mobile-pix-select"
+                value={selectedItem?.identifier ?? ''}
+                onChange={(event) => handleSelectPix(event.target.value)}
+                className="mt-2 h-11 w-full rounded-[8px] border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-950 outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                {items.map((item) => (
+                  <option key={item.id} value={item.identifier}>
+                    {item.purpose} - {item.branch.name}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
 
