@@ -148,7 +148,7 @@ const pixGeneratorDefaultValues: PixGeneratorFormValues = {
   keyType: 'cnpj',
   pixKey: '36387579000134',
   merchantName: 'PIB SMJ',
-  merchantCity: 'SANTA MAJETIBA',
+  merchantCity: 'SANTA MA JETIBA',
   amount: '',
   txid: '',
   description: '',
