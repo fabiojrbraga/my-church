@@ -13,6 +13,7 @@ const defaultBranding = {
   shortName: 'MyChurch',
   slogan: 'ERP e site publico para igrejas',
   description: DEFAULT_DESCRIPTION,
+  heroImageUrl: '/images/public-home-hero.png',
   primaryColor: '#2563eb',
   accentColor: '#f97316',
   sidebarColor: '#0f172a',
@@ -117,13 +118,23 @@ async function ensureBrandingSettings() {
     },
   })
 
-  if (settings.description !== LEGACY_DEFAULT_DESCRIPTION) {
+  const dataToUpdate: { description?: string; heroImageUrl?: string } = {}
+
+  if (settings.description === LEGACY_DEFAULT_DESCRIPTION) {
+    dataToUpdate.description = DEFAULT_DESCRIPTION
+  }
+
+  if (!settings.heroImageUrl) {
+    dataToUpdate.heroImageUrl = defaultBranding.heroImageUrl
+  }
+
+  if (Object.keys(dataToUpdate).length === 0) {
     return settings
   }
 
   return prisma.brandingSettings.update({
     where: { id: BRANDING_SETTINGS_ID },
-    data: { description: DEFAULT_DESCRIPTION },
+    data: dataToUpdate,
   })
 }
 

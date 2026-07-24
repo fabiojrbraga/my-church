@@ -59,7 +59,7 @@ export const defaultBranding: BrandingSettings = {
   logoDarkUrl: null,
   iconUrl: null,
   faviconUrl: null,
-  heroImageUrl: null,
+  heroImageUrl: '/images/public-home-hero.png',
   logoBackgroundColor: '#0f172a',
   logoDarkBackgroundColor: '#1e293b',
   iconBackgroundColor: '#2563eb',

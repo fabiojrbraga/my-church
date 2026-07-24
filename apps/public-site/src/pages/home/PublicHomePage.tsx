@@ -60,7 +60,7 @@ function getWhatsappUrl(value: string | null) {
 export function PublicHomePage() {
   const branding = useBranding()
   const logo = branding.logoUrl ?? branding.iconUrl
-  const heroImageUrl = branding.heroImageUrl ?? '/images/public-home-hero.png'
+  const heroImageUrl = branding.heroImageUrl
   const footerLogo = branding.logoDarkUrl ?? branding.logoUrl ?? branding.iconUrl
   const logoForegroundColor = getReadableTextColor(branding.logoBackgroundColor)
   const footerLogoForegroundColor = getReadableTextColor(branding.logoDarkBackgroundColor)
@@ -153,7 +153,7 @@ export function PublicHomePage() {
       <main>
         <section className="relative isolate min-h-[calc(100svh-7.5rem)] overflow-hidden">
           <img
-            src={heroImageUrl}
+            src={heroImageUrl ?? ''}
             alt="Pessoas chegando em um ambiente acolhedor da igreja"
             className="absolute inset-0 h-full w-full object-cover"
           />
