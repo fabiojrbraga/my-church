@@ -7,13 +7,15 @@ const LEGACY_DEFAULT_DESCRIPTION =
   'Uma comunidade local para acolher pessoas, compartilhar a fe e conectar visitantes aos canais oficiais da instituicao.'
 const DEFAULT_DESCRIPTION =
   'Portanto, ide, fazei discípulos de todas as nações, batizando-os em nome do Pai, e do Filho, e do Espírito Santo. Mateus 28:19'
+const DEFAULT_HERO_IMAGE_URL = '/images/public-home-hero.jpg'
+const LEGACY_DEFAULT_HERO_IMAGE_URL = '/images/public-home-hero.png'
 
 const defaultBranding = {
   displayName: 'MyChurch',
   shortName: 'MyChurch',
   slogan: 'ERP e site publico para igrejas',
   description: DEFAULT_DESCRIPTION,
-  heroImageUrl: '/images/public-home-hero.png',
+  heroImageUrl: DEFAULT_HERO_IMAGE_URL,
   primaryColor: '#2563eb',
   accentColor: '#f97316',
   sidebarColor: '#0f172a',
@@ -124,7 +126,7 @@ async function ensureBrandingSettings() {
     dataToUpdate.description = DEFAULT_DESCRIPTION
   }
 
-  if (!settings.heroImageUrl) {
+  if (!settings.heroImageUrl || settings.heroImageUrl === LEGACY_DEFAULT_HERO_IMAGE_URL) {
     dataToUpdate.heroImageUrl = defaultBranding.heroImageUrl
   }
 
