@@ -123,31 +123,11 @@ export function PublicHomePage() {
             </div>
           </a>
 
-          <div className="ml-auto hidden items-center gap-1 md:flex">
-            <a
-              href="/pix"
-              className="rounded-[8px] px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950"
-            >
-              Pix
-            </a>
-          </div>
-
           <Button type="button" size="md" className="ml-auto md:ml-2">
             Entrar
             <ArrowRight className="h-4 w-4" />
           </Button>
         </nav>
-
-        <div className="border-t border-slate-200/80 md:hidden">
-          <div className="flex px-4 py-2">
-            <a
-              href="/pix"
-              className="rounded-[8px] bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-950"
-            >
-              Pix
-            </a>
-          </div>
-        </div>
       </header>
 
       <main>
