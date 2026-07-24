@@ -123,7 +123,7 @@ export function PublicHomePage() {
             </div>
           </a>
 
-          <Button type="button" size="md" className="ml-auto md:ml-2">
+          <Button type="button" size="md" className="ml-auto">
             Entrar
             <ArrowRight className="h-4 w-4" />
           </Button>
